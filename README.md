@@ -1,5 +1,7 @@
 # A WITCH computer simulator
 
+http://www.computerconservationsociety.org/witch.htm
+
 ## Usage
 
 If a standalone JAR file has been created, it can be run with the following
