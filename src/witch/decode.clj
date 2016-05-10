@@ -94,10 +94,11 @@
     (throw (ex-info "Invalid stores" machine-state)))
 
   (let [[src m] (m/read-dst-address machine-state a)
-        [dst m] (m/read-dst-address m b)]
+        [dst m] (m/read-dst-address m b)
+        [acc m] (m/read-dst-address m 9)]
     (->
       m
-      (m/write-address 9 (* dst src))
+      (m/write-address 9 (+ acc (* dst src)))
       (m/write-address b 0))))
 
 (defn exec-divide

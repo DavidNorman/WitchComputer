@@ -1,7 +1,5 @@
 # A WITCH computer simulator
 
-http://www.computerconservationsociety.org/witch.htm
-
 ## Usage
 
 If a standalone JAR file has been created, it can be run with the following
@@ -20,11 +18,32 @@ and then run the code using the following command line.
 
     $ lein run resources/demo-2
 
+## Tape file format
+
+The tape file format tries to be similar to the examples given on the WITCH computer
+website.  Several tapes are described in each file.  Blank lines are ignored, as are
+lines which start ';'.  A line can contain one of:
+
+| Syntax     | Meaning                                                  | Example   |
+|------------|----------------------------------------------------------|-----------|
+| #n         | A block marker                                           | #1        |
+| NNNNN      | A five digit positive number, typically used for orders  | 21020     |
+| +N.NNNNNNN | An eight digit positive number. '+' is mandatory         | +1.234567 |
+| -N.NNNNNNN | An eight digit negative number. '-' is mandatory         | -1.234567 |
+
+See the files in the 'resources' directory for some examples.
+
 ## Running the unit tests
 
 Unit tests can be run from Leiningen environment.
 
     $ lein test
+
+## ToDo
+
+* Finish off the unit tests
+* Write some other example tapes (calculate sin/cos, bubble sort, quick sort, ...)
+* Introduce punched hole tape format
 
 ## License
 
