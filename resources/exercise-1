@@ -1,0 +1,73 @@
+; Exercise 1
+; Produces a table of X, X**2 and X**3 for X=1.0, 1.1, 1.2, 1.3, 1.4, 1.5
+
+; Constants/Variables
+;
+; 10 = X
+; 20 = loop increment (const)
+; 30 = loop terminator (const)
+; 40 = X**2 destination
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+22000
+23000
+24000
+
+; Add in data
+10110
++10000000
+10120
++01000000
+10130
++15500000
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Calc X, X^2
+11040
+51040
+
+; Print X
+07300
+11001
+
+; Print X**2
+10901
+
+; Copy X**2 to 40, clear accumulator and calc X**3
+10940
+20900
+51040
+
+; Print X**3
+07400
+10901
+
+; Increase X
+12010
+
+; Test
+13040
+31040
+01140
+
+24000
+20900
+
+; Search for block 2 again or stop
+05202
+00100
+

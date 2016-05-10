@@ -1,0 +1,73 @@
+; Exercise 2
+; Print 6 terms of progression with ratio 3/7
+
+; Constants/Variables
+;
+; 10 = loop value
+; 11 = (3/7)**N
+; 12 = Running total of series
+; 40 = temp
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+21100
+21200
+24000
+
+; Add in data
+10110
++00000001
+10111
++10000000
+10112
++10000000
+
+; Set print format
+07400
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Print out total so far
+11201
+
+; Read in 3/7 -> 20
+10220
++04285714
+
+; Multiply by current (3/7)**N
+51120
+
+; Store for next iteration
+21100
+10911
+
+; Sum into running total
+20912
+
+; Increase X
+10210
++00000001
+
+; Test
+10240
++00000006
+31040
+01140
+24000
+
+; Search for block 2 again or stop
+05202
+00100
+

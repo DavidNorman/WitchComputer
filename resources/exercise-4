@@ -1,0 +1,73 @@
+; Exercise 4
+; Fibonacci Sequence and ratio
+
+; Constants/Variables
+;
+; 10 = loop value
+; 11 = F(n)
+; 20 = F(n+1)
+; 40 = temp
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+21100
+22000
+
+; Add in data
+10110
++00000001
+10111
++00000001
+10120
++00000001
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Print out current pair
+07300
+11101
+12001
+
+; Create ratio
+20900
+11109
+24000
+62040
+
+; Print ratio
+07400
+14001
+
+; F(n)+F(n+1) -> F(n+2)
+12011
+
+; F(n+1)+F(n+2) -> F(n+3)
+11120
+
+; Increase X
+10210
++00000001
+
+; Test
+24000
+10240
++00000014
+31040
+01140
+
+; Search for block 2 again or stop
+05202
+00100
+

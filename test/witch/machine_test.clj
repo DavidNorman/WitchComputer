@@ -153,7 +153,7 @@
              (assoc :tapes [[1M 2M 3M :block1 4M :block1 5M :block2 6M]])
              (m/search-tape 1 :block1)
              (get-in [:tapes 0]))
-         [4M :block1 5M :block2 6M 1M 2M 3M :block1]))
+         [:block1 4M :block1 5M :block2 6M 1M 2M 3M]))
   )
 
 (deftest read-from-tape

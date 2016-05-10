@@ -1,0 +1,98 @@
+; Exercise 5
+; Non-pairs of digits 1-4
+
+; Constants/Variables
+;
+; 10 = N1
+; 11 = N2
+; 40 = temp
+; 50 = temp
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+21100
+24000
+
+; Add in data
+10110
++10000000
+10111
++10000000
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Reset N2
+21100
+10211
++10000000
+
+#3
+
+; Subtract the values
+24000
+11040
+31140
+
+; abs(x)-1 is negative if x==0
+25000
+74050
+30250
++10000000
+01250
+
+; Conditional jump to block 4
+05204
+
+; Print
+07300
+11001
+07400
+11101
+
+#4
+
+; Increase N2
+24000
+10240
++10000000
+24011
+
+; Test N2
+10240
++40000000
+31140
+01140
+
+; Conditional search for block 3 again
+05203
+
+; Increase N1
+24000
+10240
++10000000
+24010
+
+; Test N1
+10240
++40000000
+31040
+01140
+
+; Conditional search for block 2 again
+05202
+
+; Stop
+00100
+

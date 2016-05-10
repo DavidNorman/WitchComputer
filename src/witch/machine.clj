@@ -47,7 +47,20 @@
   (loop [tape (get-in machine-state [:tapes (dec tape-num)])]
     (if-not (= marker (first tape))
       (recur (rotate tape))
-      (assoc-in machine-state [:tapes (dec tape-num)] (rotate tape)))))
+      (assoc-in machine-state [:tapes (dec tape-num)] tape))))
+
+(defn skip-block-markers
+  "Skip over any block markers on the tape."
+  [machine-state tape-num]
+  (loop [tape (get-in machine-state [:tapes (dec tape-num)])]
+    (if (keyword? (first tape))
+      (recur (rotate tape))
+      (assoc-in machine-state [:tapes (dec tape-num)] tape))))
+
+(defn read-tape
+  [machine-state tape-num]
+  "Read the first value off the tape."
+  (first (get-in machine-state [:tapes (dec tape-num)])))
 
 ; Debug
 
@@ -68,8 +81,9 @@
   (when (> address (count (:tapes machine-state)))
     (throw (ex-info "Tape not available" machine-state)))
 
-  [(first (get-in machine-state [:tapes (dec address)]))
-   (update-in machine-state [:tapes (dec address)] rotate)])
+  (let [m (skip-block-markers machine-state address)]
+    [(read-tape m address)
+     (update-in m [:tapes (dec address)] rotate)]))
 
 (defn input-last-7-digits-accumultor
   [machine-state]

@@ -12,11 +12,17 @@ and then run the code using the following command line.
 
     $ lein run <tape-file>
 
+## Command line options
+
+    -t  :  Traces the execution of the system
+
 ## Examples
 
     $ lein run resources/demo-1
 
     $ lein run resources/demo-2
+
+    $ lein run -t resources/exercise-1
 
 ## Tape file format
 
@@ -24,12 +30,14 @@ The tape file format tries to be similar to the examples given on the WITCH comp
 website.  Several tapes are described in each file.  Blank lines are ignored, as are
 lines which start ';'.  A line can contain one of:
 
-| Syntax     | Meaning                                                  | Example   |
-|------------|----------------------------------------------------------|-----------|
-| #n         | A block marker                                           | #1        |
-| NNNNN      | A five digit positive number, typically used for orders  | 21020     |
-| +N.NNNNNNN | An eight digit positive number. '+' is mandatory         | +1.234567 |
-| -N.NNNNNNN | An eight digit negative number. '-' is mandatory         | -1.234567 |
+| Syntax    | Meaning                                                  | Example  |
+|-----------|----------------------------------------------------------|----------|
+| #n        | A block marker                                           | #1       |
+| NNNNN     | A five digit positive number, typically used for orders  | 21020    |
+| +NNNNNNNN | An eight digit positive number. '+' is mandatory         | +1234567 |
+| -NNNNNNNN | An eight digit negative number. '-' is mandatory         | -1234567 |
+
+There is an implicit decimal point after the first digit of any number.
 
 See the files in the 'resources' directory for some examples.
 

@@ -112,7 +112,7 @@
         [acc m] (m/input-accumulator m)]
     (->
       m
-      (m/write-address b (/ acc src))
+      (m/write-address b (with-precision 15 (/ acc src)))
       (m/write-address 9 0))))
 
 (defn exec-transfer-positive-modulus
@@ -185,8 +185,9 @@
   [machine-state opcode]
 
   (when (:trace machine-state)
-    (pp/cl-format true "Executing ~,4F~%" opcode)
-    (m/dump-machine-state machine-state))
+    (pp/cl-format true "Executing ~,4F on:~%" opcode)
+    (m/dump-machine-state machine-state)
+    (pp/cl-format true "------------------~%"))
 
   (if (keyword? opcode)
     (throw (ex-info (str "Cannot execute block marker " opcode) machine-state))
