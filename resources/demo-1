@@ -1,0 +1,56 @@
+; Demonstration program 1
+; Computes the squares for X=1.0, 1.1, 1.2, 1.3, 1.4, 1.5
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+22000
+23000
+24000
+
+; Add in data
+10110
++10000000
+10120
++01000000
+10130
++15500000
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Calc X, X^2
+11040
+51040
+
+; Print
+07300
+11001
+07400
+10901
+
+; Increase X
+12010
+
+; Test
+13040
+31040
+01140
+
+24000
+20900
+
+; Search for block 2 again or stop
+05202
+00100
+

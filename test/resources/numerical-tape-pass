@@ -1,0 +1,37 @@
+==tape
+
+00000
+
+; some blank lines
+
+11111
+22222
+33333
+44444
+55555
+66666
+77777
+88888
+99999
+; leading zero
+01111
+
++12345678
+-12345678
+
+; an eight digit number with leading zero
++01234567
+
+; a negative eight digit number with leading zero
+-01234567
+
+; a block marker
+#1
+12345
+
+==tape
+
+00000
+11111
+22222
+

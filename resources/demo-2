@@ -1,0 +1,68 @@
+; Demonstration program 2
+
+
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+22000
+23000
+24000
+25000
+
+; Add in data
+10110
++05000000
+10120
++90000000
+10130
++10000000
+10140
++20000000
+
+; Form first term
+11050
+
+; Transfer to looping tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Print S
+07400
+11001
+
+; Test
+33020
+01220
+
+; Search when -ve
+05303
+02203
+
+; Divide then clear remainder
+25009
+64050
+20900
+
+; Add T to S
+15010
+
+; Go to block 2
+03202
+
+==tape
+
+#3
+
+; Stop
+00100
+
+
