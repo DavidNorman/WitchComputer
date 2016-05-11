@@ -150,33 +150,33 @@
 
   ; Find the next block1 marker and advance one entry past it
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[1M 2M 3M :block1 4M :block1 5M :block2 6M]])
+             (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
              (m/search-tape 1 :block1)
              (get-in [:tapes 0]))
-         [:block1 4M :block1 5M :block2 6M 1M 2M 3M]))
+         [[:block1 4M] [:block1 5M] [:block2 6M] [nil 1M] [nil 2M] [nil 3M]]))
   )
 
 (deftest read-from-tape
 
   ; Returns the correct value
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[1M 2M 3M :block1 4M :block1 5M :block2 6M]])
+             (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
              (m/input-tape 1)
              (first))
          1M))
 
   ; Moves the tape forward
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[1M 2M 3M :block1 4M :block1 5M :block2 6M]])
+             (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
              (m/input-tape 1)
              (second)
              (get-in [:tapes 0]))
-         [2M 3M :block1 4M :block1 5M :block2 6M 1M]))
+         [[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 1M]]))
 
   ; Can't read non-existing tape
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :tapes [[1M 2M 3M :block1 4M :block1 5M :block2 6M]])
+                   (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
                    (m/input-tape 2))))
 
   )

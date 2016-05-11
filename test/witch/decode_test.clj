@@ -17,7 +17,7 @@
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc :tapes [[8.0000M]])
+                        (assoc :tapes [[[nil 8.0000M]]])
                         (assoc :pc 1)
                         (d/step))))
 
@@ -25,7 +25,7 @@
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc :tapes [[0.6000M]])
+                        (assoc :tapes [[[nil 0.6000M]]])
                         (assoc :pc 1)
                         (d/step))))
 
@@ -38,7 +38,7 @@
                   m/initial-machine-state
                   (assoc-in [:registers 0] 1.234M)
                   (assoc-in [:registers 10] 0.001M)
-                  (assoc :tapes [[1.1020M]])
+                  (assoc :tapes [[[nil 1.1020M]]])
                   (assoc :pc 1)
                   (d/step)
                   (get-registers [0 10]))
@@ -49,7 +49,7 @@
                   m/initial-machine-state
                   (assoc-in [:registers 0] 1.234M)
                   (assoc :accumulator 0.0000001111M)
-                  (assoc :tapes [[1.1009M]])
+                  (assoc :tapes [[[nil 1.1009M]]])
                   (assoc :pc 1)
                   (d/step)
                   :accumulator)
@@ -60,7 +60,7 @@
                   m/initial-machine-state
                   (assoc-in [:registers 10] 1.3333333M)
                   (assoc :accumulator 0.0000001111M)
-                  (assoc :tapes [[1.0920M]])
+                  (assoc :tapes [[[nil 1.0920M]]])
                   (assoc :pc 1)
                   (d/step)
                   (get-registers [10]))
@@ -71,7 +71,7 @@
                         m/initial-machine-state
                         (assoc-in [:registers 0] 8.0M)
                         (assoc-in [:registers 10] 2.0M)
-                        (assoc :tapes [[1.1020M]])
+                        (assoc :tapes [[[nil 1.1020M]]])
                         (assoc :pc 1)
                         (d/step))))
 
@@ -80,7 +80,7 @@
                         m/initial-machine-state
                         (assoc-in [:registers 0] -8.0M)
                         (assoc-in [:registers 10] -3.0M)
-                        (assoc :tapes [[1.1020M]])
+                        (assoc :tapes [[[nil 1.1020M]]])
                         (assoc :pc 1)
                         (d/step))))
 
@@ -88,21 +88,21 @@
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc :tapes [[1.1011M]])
+                        (assoc :tapes [[[nil 1.1011M]]])
                         (assoc :pc 1)
                         (d/step))))
 
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc :tapes [[1.2029M]])
+                        (assoc :tapes [[[nil 1.2029M]]])
                         (assoc :pc 1)
                         (d/step))))
 
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc :tapes [[1.0000M]])
+                        (assoc :tapes [[[nil 1.0000M]]])
                         (assoc :pc 1)
                         (d/step))))
 
@@ -111,7 +111,7 @@
                   m/initial-machine-state
                   (assoc-in [:registers 0] 0.1234M)
                   (assoc-in [:registers 10] 0.001M)
-                  (assoc :tapes [[0.8000 1.1020M]])
+                  (assoc :tapes [[[nil 0.8000] [nil 1.1020M]]])
                   (assoc :pc 1)
                   (d/step)
                   (d/step)
@@ -126,7 +126,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[2.1020M]])
+           (assoc :tapes [[[nil 2.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
@@ -137,7 +137,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[2.1009M]])
+           (assoc :tapes [[[nil 2.1009M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -148,7 +148,7 @@
            m/initial-machine-state
            (assoc-in [:registers 10] 1.3333333M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[2.0920M]])
+           (assoc :tapes [[[nil 2.0920M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [10]))
@@ -158,7 +158,7 @@
   (is (= (->
            m/initial-machine-state
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[2.0900M]])
+           (assoc :tapes [[[nil 2.0900M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -170,7 +170,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] 8.0M)
                  (assoc-in [:registers 10] 2.0M)
-                 (assoc :tapes [[2.1020M]])
+                 (assoc :tapes [[[nil 2.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -179,7 +179,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] -8.0M)
                  (assoc-in [:registers 10] -3.0M)
-                 (assoc :tapes [[2.1020M]])
+                 (assoc :tapes [[[nil 2.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -187,21 +187,21 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[2.1011M]])
+                 (assoc :tapes [[[nil 2.1011M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[2.2029M]])
+                 (assoc :tapes [[[nil 2.2029M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[2.0000M]])
+                 (assoc :tapes [[[nil 2.0000M]]])
                  (assoc :pc 1)
                  (d/step))))
   )
@@ -212,7 +212,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[3.1020M]])
+           (assoc :tapes [[[nil 3.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
@@ -223,7 +223,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[3.1009M]])
+           (assoc :tapes [[[nil 3.1009M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -234,7 +234,7 @@
            m/initial-machine-state
            (assoc-in [:registers 10] 1.3333333M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[3.0920M]])
+           (assoc :tapes [[[nil 3.0920M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [10]))
@@ -246,7 +246,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] 8.0M)
                  (assoc-in [:registers 10] -2.0M)
-                 (assoc :tapes [[3.1020M]])
+                 (assoc :tapes [[[nil 3.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -255,7 +255,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] -8.0M)
                  (assoc-in [:registers 10] 3.0M)
-                 (assoc :tapes [[3.1020M]])
+                 (assoc :tapes [[[nil 3.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -263,21 +263,21 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[3.1011M]])
+                 (assoc :tapes [[[nil 3.1011M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[3.2029M]])
+                 (assoc :tapes [[[nil 3.2029M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[3.0000M]])
+                 (assoc :tapes [[[nil 3.0000M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -286,7 +286,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 0.1234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[0.8000 3.1020M]])
+           (assoc :tapes [[[nil 0.8000] [nil 3.1020M]]])
            (assoc :pc 1)
            (d/step)
            (d/step)
@@ -300,7 +300,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[4.1020M]])
+           (assoc :tapes [[[nil 4.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
@@ -311,7 +311,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[4.1009M]])
+           (assoc :tapes [[[nil 4.1009M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -322,7 +322,7 @@
            m/initial-machine-state
            (assoc-in [:registers 10] 1.3333333M)
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[4.0920M]])
+           (assoc :tapes [[[nil 4.0920M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [10]))
@@ -332,7 +332,7 @@
   (is (= (->
            m/initial-machine-state
            (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[4.0900M]])
+           (assoc :tapes [[[nil 4.0900M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -344,7 +344,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] 8.0M)
                  (assoc-in [:registers 10] -2.0M)
-                 (assoc :tapes [[4.1020M]])
+                 (assoc :tapes [[[nil 4.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -353,7 +353,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] -8.0M)
                  (assoc-in [:registers 10] 3.0M)
-                 (assoc :tapes [[4.1020M]])
+                 (assoc :tapes [[[nil 4.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -361,21 +361,21 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[4.1011M]])
+                 (assoc :tapes [[[nil 4.1011M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[4.2029M]])
+                 (assoc :tapes [[[nil 4.2029M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[4.0000M]])
+                 (assoc :tapes [[[nil 4.0000M]]])
                  (assoc :pc 1)
                  (d/step))))
   )
@@ -387,7 +387,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[5.1020M]])
+           (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -397,7 +397,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] -0.0000005M)
            (assoc-in [:registers 10] 0.005M)
-           (assoc :tapes [[5.1020M]])
+           (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -407,7 +407,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] -0.0000001M)
            (assoc-in [:registers 10] -0.0000001M)
-           (assoc :tapes [[5.1020M]])
+           (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -418,7 +418,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] -0.0000001M)
            (assoc-in [:registers 10] -0.0000001M)
-           (assoc :tapes [[5.1020M]])
+           (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
@@ -430,7 +430,7 @@
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
            (assoc :accumulator 1.5M)
-           (assoc :tapes [[5.1020M]])
+           (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
@@ -442,7 +442,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] -4M)
                  (assoc-in [:registers 10] -3M)
-                 (assoc :tapes [[5.1020M]])
+                 (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -451,7 +451,7 @@
                  m/initial-machine-state
                  (assoc-in [:registers 0] 4M)
                  (assoc-in [:registers 10] 3M)
-                 (assoc :tapes [[5.1020M]])
+                 (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
@@ -459,14 +459,14 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[5.0020M]])
+                 (assoc :tapes [[[nil 5.0020M]]])
                  (assoc :pc 1)
                  (d/step))))
 
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc :tapes [[5.1001M]])
+                 (assoc :tapes [[[nil 5.1001M]]])
                  (assoc :pc 1)
                  (d/step))))
   )
@@ -480,7 +480,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[7.1020M]])
+           (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
@@ -491,7 +491,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 1.234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[7.1020M]])
+           (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))

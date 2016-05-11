@@ -5,26 +5,25 @@
 (deftest passing-tape
   (is (=
         (t/read-tapes ["test/resources/numerical-tape-pass"])
-        [[0.0000M
-          1.1111M
-          2.2222M
-          3.3333M
-          4.4444M
-          5.5555M
-          6.6666M
-          7.7777M
-          8.8888M
-          9.9999M
-          0.1111M
-          1.2345678M
-          -1.2345678M
-          0.1234567M
-          -0.1234567M
-          :block1
-          1.2345M]
-         [0.0000M
-          1.1111M
-          2.2222M]])))
+        [[[:no-block 0.0000M]
+          [:no-block 1.1111M]
+          [:no-block 2.2222M]
+          [:no-block 3.3333M]
+          [:no-block 4.4444M]
+          [:no-block 5.5555M]
+          [:no-block 6.6666M]
+          [:no-block 7.7777M]
+          [:no-block 8.8888M]
+          [:no-block 9.9999M]
+          [:no-block 0.1111M]
+          [:no-block 1.2345678M]
+          [:no-block -1.2345678M]
+          [:no-block 0.1234567M]
+          [:no-block -0.1234567M]
+          [:block1 1.2345M]]
+         [[:no-block 0.0000M]
+          [:no-block 1.1111M]
+          [:no-block 2.2222M]]])))
 
 
 (deftest failing-tape-1

@@ -45,22 +45,17 @@
   order or value following the marker."
   [machine-state tape-num marker]
   (loop [tape (get-in machine-state [:tapes (dec tape-num)])]
-    (if-not (= marker (first tape))
-      (recur (rotate tape))
-      (assoc-in machine-state [:tapes (dec tape-num)] tape))))
-
-(defn skip-block-markers
-  "Skip over any block markers on the tape."
-  [machine-state tape-num]
-  (loop [tape (get-in machine-state [:tapes (dec tape-num)])]
-    (if (keyword? (first tape))
+    (if-not (= marker (first (first tape)))
       (recur (rotate tape))
       (assoc-in machine-state [:tapes (dec tape-num)] tape))))
 
 (defn read-tape
   [machine-state tape-num]
   "Read the first value off the tape."
-  (first (get-in machine-state [:tapes (dec tape-num)])))
+  (->
+    (get-in machine-state [:tapes (dec tape-num)])
+    (first)
+    (second)))
 
 ; Debug
 
@@ -81,7 +76,7 @@
   (when (> address (count (:tapes machine-state)))
     (throw (ex-info "Tape not available" machine-state)))
 
-  (let [m (skip-block-markers machine-state address)]
+  (let [m machine-state]
     [(read-tape m address)
      (update-in m [:tapes (dec address)] rotate)]))
 

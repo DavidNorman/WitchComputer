@@ -13,23 +13,31 @@
    "#9" :block9
    })
 
+(defn convert-tape-string
+  [l]
+  (let [m1 (re-find #"^[-+]\d{8}$" l)
+        m2 (re-find #"^\d{5}+$" l)
+        m3 (re-find #"#\d$" l)]
+
+    (when-not (or m1 m2 m3)
+      (throw (Exception. (str "Numerical tape format error:" l))))
+
+    (cond
+      m3 (get block-markers m3)
+      m2 (/ (bigdec m2) 10000M)
+      m1 (/ (bigdec m1) 10000000M))))
+
 (defn process-one-tape
   [s]
   (doall
-    (map
-      (fn [l]
-        (let [m1 (re-find #"^[-+]\d{8}$" l)
-              m2 (re-find #"^\d{5}+$" l)
-              m3 (re-find #"#\d$" l)]
-
-          (when-not (or m1 m2 m3)
-            (throw (Exception. (str "Numerical tape format error:" l))))
-
-          (cond
-            m3 (get block-markers m3)
-            m2 (/ (bigdec m2) 10000M)
-            m1 (/ (bigdec m1) 10000000M))))
-      s)))
+    (->>
+      s
+      (map convert-tape-string)
+      (concat [:no-block])
+      (partition 2 1)
+      (remove (comp keyword? second))
+      (map
+        (fn [[a b]] (if (number? a) [:no-block b] [a b]))))))
 
 (defn comment-or-blank?
   [l]
