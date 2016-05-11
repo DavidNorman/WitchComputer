@@ -1,5 +1,5 @@
 ; Exercise 5
-; Non-pairs of digits 1-4
+; Non-pairs of digits 1-4 also not differing by more than 2
 
 ; Constants/Variables
 ;
@@ -51,6 +51,12 @@
 30250
 +10000000
 01250
+05204
+
+; abs(x)-3 is positive if the digits differ by more than 2
+30250
++20000000
+01150
 05204
 
 ; Print
