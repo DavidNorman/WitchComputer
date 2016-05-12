@@ -1,0 +1,124 @@
+; Exercise 1
+; Produces sin(x)
+
+; Constants/Variables
+;
+; 10 = N, counter
+; 20 = last taylor series term
+; 40 = temp
+; 50 = temp
+; 60 = x, the parameter of sine
+; 70 = sin(x), the taylor series
+
+==tape
+
+#1
+
+; Initial values presume 1st term (X) is in stores
+
+; Counter on 2nd term
+21000
+10110
++20000000
+
+; X = 1.1
+26000
+10160
++11000000
+
+; current term = X
+22000
+16020
+
+; sin(x) = x (term 1)
+27000
+16070
+
+; Set initial print format
+07400
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; 1/N -> 40
+20900
+10209
++10000000
+24000
+61040
+
+; Increment N
+10210
++10000000
+
+; 1/(N+1) -> 50
+20900
+10209
++10000000
+25000
+61050
+
+; 1/N(N+1) -> 50
+20900
+54050
+20950
+
+; X^2 -> 40
+24000
+16040
+20900
+56040
+10940
+
+; Get X^2 / N(N+1) -> 40
+20900
+55040
+10940
+
+; Multiply into taylor series term -> 20
+20900
+54020
+10920
+
+; Swap the sign of the term
+20900
+24000
+10240
+-10000000
+54020
+10920
+
+; Sum into taylor series
+12070
+
+; Increment N
+10210
++10000000
+
+; Test
+24000
+10240
++75000000
+31040
+01140
+
+; Search for block 2 again or stop
+05202
+
+; Print X, sin(x)
+07300
+16001
+07400
+17001
+
+; Stop
+00100
+
+
+

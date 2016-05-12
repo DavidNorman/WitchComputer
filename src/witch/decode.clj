@@ -113,7 +113,7 @@
     (->
       m
       (m/write-address b (with-precision 15 (/ acc src)))
-      (m/write-address 9 0))))
+      (m/write-address 9 0)))) ; todo remainder in accumulator
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]

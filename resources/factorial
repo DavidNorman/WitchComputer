@@ -1,0 +1,59 @@
+; Exercise 1
+; Produces a table of X and X!
+
+; Constants/Variables
+;
+; 10 = X (least significant digit form)
+; 20 = current factorial value (LSD form)
+; 40 = temp
+
+==tape
+
+#1
+
+; Load data
+21000
+10110
++00000001
+22000
+10120
++00000001
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Multiply X into factorial
+20900
+51020
+
+; Transfer X! back to stores (shifting by -1 at the same time)
+08200
+10820
+
+; Print X, X!
+07300
+11001
+07400
+12001
+
+; Increase X
+10210
++00000001
+
+; Test
+24000
+10240
++00000010
+31040
+01140
+
+; Search for block 2 again or stop
+05202
+00100
+

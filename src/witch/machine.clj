@@ -3,7 +3,7 @@
 
 
 (def initial-machine-state
-  {:registers       (into [] (repeat 90 0))
+  {:registers       (into [] (repeat 90 0M))
    :accumulator     0
    :shift-value     1
    :printing-layout 0
