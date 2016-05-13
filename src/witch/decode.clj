@@ -28,6 +28,22 @@
   [machine-state val]
   (* val (:shift-value machine-state)))
 
+(defn examine-sign
+  "Examine the sign of the argument and record"
+  [machine-state a b]
+  (let [[val m] (m/read-src-address machine-state b)
+        positive? (>= val 0)]
+    (if (= 1 (mod a 10))
+      (assoc m :sign-test positive?)
+      (assoc m :sign-test (not positive?)))))
+
+(defn search-tape-conditional
+  "Conditionally search tape for a block marker"
+  [machine-state a b]
+  (if (:sign-test machine-state)
+    (m/search-tape machine-state (mod a 10) (get block-keywords b))
+    machine-state))
+
 (defn address-a
   "Extract the 'src' field from the order (digits 2,3)"
   [opcode]
@@ -147,15 +163,10 @@
 
 (defn exec-sign-examination
   [machine-state a b]
-  (let [[val m] (m/read-src-address machine-state b)
-        positive? (>= val 0)]
-    (->
-      m
-      ((fn [mm]
-        (if (= 1 (mod a 10))
-          (assoc mm :sign-test positive?)
-          (assoc mm :sign-test (not positive?)))))
-      (m/advance-pc))))
+  (->
+    machine-state
+    (examine-sign a b)
+    (m/advance-pc)))
 
 (defn exec-transfer-control
   [machine-state a b]
@@ -174,10 +185,7 @@
   [machine-state a b]
   (->
     machine-state
-    ((fn [m]
-      (if (:sign-test m)
-        (m/search-tape m (mod a 10) (get block-keywords b))
-        m)))
+    (search-tape-conditional a b)
     (m/advance-pc)))
 
 (defn exec-change-print-layout
