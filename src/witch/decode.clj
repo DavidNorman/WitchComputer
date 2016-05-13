@@ -48,7 +48,8 @@
     (->
       m
       (m/write-address b (+ dst (apply-shift m src)))
-      (assoc :shift-value 1))))
+      (assoc :shift-value 1)
+      (m/advance-pc))))
 
 (defn exec-add-and-clear
   [machine-state a b]
@@ -60,7 +61,8 @@
     (->
       m
       (m/write-address b (+ dst src))
-      (m/write-address a 0))))
+      (m/write-address a 0)
+      (m/advance-pc))))
 
 (defn exec-subtract
   [machine-state a b]
@@ -72,7 +74,8 @@
     (->
       m
       (m/write-address b (- dst (apply-shift m src)))
-      (assoc :shift-value 1))))
+      (assoc :shift-value 1)
+      (m/advance-pc))))
 
 (defn exec-subtract-and-clear
   [machine-state a b]
@@ -84,7 +87,8 @@
     (->
       m
       (m/write-address b (- dst src))
-      (m/write-address a 0))))
+      (m/write-address a 0)
+      (m/advance-pc))))
 
 (defn exec-multiply
   [machine-state a b]
@@ -99,7 +103,8 @@
     (->
       m
       (m/write-address 9 (+ acc (* dst src)))
-      (m/write-address b 0))))
+      (m/write-address b 0)
+      (m/advance-pc))))
 
 (defn exec-divide
   [machine-state a b]
@@ -113,7 +118,8 @@
     (->
       m
       (m/write-address b (with-precision 15 (/ acc src)))
-      (m/write-address 9 0)))) ; todo remainder in accumulator
+      (m/write-address 9 0)
+      (m/advance-pc)))) ; todo remainder in accumulator
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]
@@ -126,22 +132,30 @@
     (->
       m
       (m/write-address b (if (>= src 0) (+ dst src) (- dst src)))
-      (assoc :shift-value 1))))
+      (assoc :shift-value 1)
+      (m/advance-pc))))
 
 ; Control instruction decodes
 
 (defn exec-signal
   [machine-state a]
   (pp/cl-format true "Signal ~a~%" a)
-  (assoc machine-state :finished true))
+  (->
+    machine-state
+    (assoc :finished true)
+    (m/advance-pc)))
 
 (defn exec-sign-examination
   [machine-state a b]
   (let [[val m] (m/read-src-address machine-state b)
         positive? (>= val 0)]
-    (if (= 1 (mod a 10))
-      (assoc m :sign-test positive?)
-      (assoc m :sign-test (not positive?)))))
+    (->
+      m
+      ((fn [mm]
+        (if (= 1 (mod a 10))
+          (assoc mm :sign-test positive?)
+          (assoc mm :sign-test (not positive?)))))
+      (m/advance-pc))))
 
 (defn exec-transfer-control
   [machine-state a b]
@@ -151,21 +165,34 @@
 
 (defn exec-search-tape
   [machine-state a b]
-  (m/search-tape machine-state (mod a 10) (get block-keywords b)))
+  (->
+    machine-state
+    (m/search-tape (mod a 10) (get block-keywords b))
+    (m/advance-pc)))
 
 (defn exec-search-tape-conditional
   [machine-state a b]
-  (if (:sign-test machine-state)
-    (m/search-tape machine-state (mod a 10) (get block-keywords b))
-    machine-state))
+  (->
+    machine-state
+    ((fn [m]
+      (if (:sign-test m)
+        (m/search-tape m (mod a 10) (get block-keywords b))
+        m)))
+    (m/advance-pc)))
 
 (defn exec-change-print-layout
   [machine-state a]
-  (assoc machine-state :printing-layout (mod a 10)))
+  (->
+    machine-state
+    (assoc :printing-layout (mod a 10))
+    (m/advance-pc)))
 
 (defn exec-set-shift-selection
   [machine-state a]
-  (assoc machine-state :shift-value (get shift-values (mod a 10))))
+  (->
+    machine-state
+    (assoc :shift-value (get shift-values (mod a 10)))
+    (m/advance-pc)))
 
 (defn decode-control
   "Decode a 'control' order. Control orders start with a '0'"
@@ -212,7 +239,6 @@
     (->
       m
       (decode opcode)
-      (m/advance-pc)
       (m/verify-machine-state))))
 
 (defn run

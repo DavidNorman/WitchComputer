@@ -1,0 +1,96 @@
+; Bubble sort up to 30 numbers from tape-3
+
+; The values tape should start with the count, marked with block 1.
+; It should be followed by the values.
+;
+; The count should be shifter to digit -4.
+
+; Variables
+; 10 - a counter for reading the values (shifted to digit -4)
+; 20 - the actual count of numbers (shifted to digit -4)
+; 40 - temp
+; 41 - temp
+; 60 - the address of the first element of the number array
+==tape
+
+#1
+
+; Clear stores
+20900
+21000
+22000
+
+; Read the number of values
+03301
+10320
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Read value from tape
+20900
+10309
+
+; Setup indirect store operation (TODO: should clear too)
+24000
+10240
+10960
+11040
+
+24100
+10241
+02102
+
+; Jump to indirect store
+02140
+
+
+07300
+11001
+
+07400
+10901
+
+; Increase X
+10210
++00001000
+
+; Test
+20900
+12009
+31009
+10209
+-00000001
+01109
+
+; Goto block 2
+05202
+
+; Stop
+00100
+
+==tape
+
+#1
++00015000
++00010101
++02416830
++57294729
+-84619573
++45710572
+-57372957
+-00482750
++01414355
+-00572659
++00000001
+-99999991
++53446263
+-00572658
+-98362986
+-00066326
