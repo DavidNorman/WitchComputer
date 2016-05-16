@@ -472,7 +472,49 @@
   )
 
 (deftest divide
-  ;TODO
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] 2.0M)
+           (assoc :accumulator 6.0M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [0 10]))
+         [2.0M 3.0M]))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] 2.0M)
+           (assoc :accumulator 7.0M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [0 10]))
+         [2.0M 3.5M]))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] -2.0M)
+           (assoc :accumulator 7.0M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [0 10]))
+         [-2.0M -3.5M]))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] 2.0M)
+           (assoc :accumulator -7.0M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [0 10]))
+         [2.0M -3.5M]))
+
+  ;TODO remainder in accumulator
+  ;TODO positive zero dividend is an error
   )
 
 (deftest transfer-modulus
