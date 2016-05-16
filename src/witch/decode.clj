@@ -1,5 +1,6 @@
 (ns witch.decode
   (:require [witch.machine :as m]
+            [witch.alu :as a]
             [clojure.pprint :as pp]))
 
 ; Values to multiply by when performing shifting
@@ -12,7 +13,7 @@
    :block5 :block6 :block7 :block8 :block9])
 
 (defn invalid-stores
-  "Check that a pair of stores are ok for an add/subtract order"
+  "Check that a pair of stores are ok for an ALU order"
   [src dst]
   (if (or (>= src 10) (>= dst 10))
     (= (quot src 10) (quot dst 10))
@@ -22,27 +23,6 @@
              0 [9]
              (1 2 3 4 5 6 7) [0 9]
              (8 9) [0 1 2 3 4])))))
-
-(defn apply-shift
-  "Apply the current shift value"
-  [machine-state val]
-  (* val (:shift-value machine-state)))
-
-(defn examine-sign
-  "Examine the sign of the argument and record"
-  [machine-state a b]
-  (let [[val m] (m/read-src-address machine-state b)
-        positive? (>= val 0)]
-    (if (= 1 (mod a 10))
-      (assoc m :sign-test positive?)
-      (assoc m :sign-test (not positive?)))))
-
-(defn search-tape-conditional
-  "Conditionally search tape for a block marker"
-  [machine-state a b]
-  (if (:sign-test machine-state)
-    (m/search-tape machine-state (mod a 10) (get block-keywords b))
-    machine-state))
 
 (defn address-a
   "Extract the 'src' field from the order (digits 2,3)"
@@ -59,52 +39,58 @@
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-src-address machine-state a)
-        [dst m] (m/read-dst-address m b)]
-    (->
-      m
-      (m/write-address b (+ dst (apply-shift m src)))
-      (assoc :shift-value 1)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (a/apply-shift)
+    (a/add)
+    (m/write-address b)
+    (assoc :shift-value 1)
+    (m/advance-pc)))
 
 (defn exec-add-and-clear
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-src-address machine-state a)
-        [dst m] (m/read-dst-address m b)]
-    (->
-      m
-      (m/write-address b (+ dst src))
-      (m/write-address a 0)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (a/add)
+    (m/write-address b)
+    (m/clear-address a)
+    (m/advance-pc)))
 
 (defn exec-subtract
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-src-address machine-state a)
-        [dst m] (m/read-dst-address m b)]
-    (->
-      m
-      (m/write-address b (- dst (apply-shift m src)))
-      (assoc :shift-value 1)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (a/apply-shift)
+    (a/subtract)
+    (m/write-address b)
+    (assoc :shift-value 1)
+    (m/advance-pc)))
 
 (defn exec-subtract-and-clear
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-src-address machine-state a)
-        [dst m] (m/read-dst-address m b)]
-    (->
-      m
-      (m/write-address b (- dst src))
-      (m/write-address a 0)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (a/subtract)
+    (m/write-address b)
+    (m/clear-address a)
+    (m/advance-pc)))
 
 (defn exec-multiply
   [machine-state a b]
@@ -113,15 +99,19 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-dst-address machine-state a)
-        [dst m] (m/read-dst-address m b)
-        [acc m] (m/read-dst-address m 9)]
-    (->
-      m
-      (m/write-address 9 (+ acc (* dst src)))
-      (m/write-address b 0)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (a/multiply)
+    (a/result-to-src)
+    (m/read-dst-address-2 9)
+    (a/add)
+    (m/write-address 9)
+    (m/clear-address b)
+    (m/advance-pc)))
 
+; todo remainder in accumulator
 (defn exec-divide
   [machine-state a b]
   (when (or (invalid-stores a b)
@@ -129,27 +119,29 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-dst-address machine-state a)
-        [acc m] (m/input-accumulator m)]
-    (->
-      m
-      (m/write-address b (with-precision 15 (/ acc src)))
-      (m/write-address 9 0)
-      (m/advance-pc)))) ; todo remainder in accumulator
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 9)
+    (a/divide)
+    (m/write-address b)
+    (m/clear-address 9)
+    (m/advance-pc)))
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [[src m] (m/read-src-address machine-state a)
-        [dst m] (m/read-dst-address m b)
-        src (apply-shift m src)]
-    (->
-      m
-      (m/write-address b (if (>= src 0) (+ dst src) (- dst src)))
-      (assoc :shift-value 1)
-      (m/advance-pc))))
+  (->
+    machine-state
+    (m/read-src-address-2 a)
+    (m/read-dst-address-2 b)
+    (update :alu-src a/abs)
+    (a/add)
+    (m/write-address b)
+    (assoc :shift-value 1)
+    (m/advance-pc)))
 
 ; Control instruction decodes
 
@@ -163,10 +155,13 @@
 
 (defn exec-sign-examination
   [machine-state a b]
-  (->
-    machine-state
-    (examine-sign a b)
-    (m/advance-pc)))
+  (as->
+    machine-state $
+    (m/read-src-address-2 $ b)
+    (assoc $ :sign-test (if (= 1 (mod a 10))
+                          (>= (:alu-src $) 0)
+                          (< (:alu-src $) 0)))
+    (m/advance-pc $)))
 
 (defn exec-transfer-control
   [machine-state a b]
@@ -183,10 +178,12 @@
 
 (defn exec-search-tape-conditional
   [machine-state a b]
-  (->
-    machine-state
-    (search-tape-conditional a b)
-    (m/advance-pc)))
+  (as->
+    machine-state $
+    (if (:sign-test $)
+        (m/search-tape $ (mod a 10) (get block-keywords b))
+        $)
+    (m/advance-pc $)))
 
 (defn exec-change-print-layout
   [machine-state a]
@@ -224,30 +221,28 @@
     (m/dump-machine-state machine-state)
     (pp/cl-format true "------------------~%"))
 
-  (if (keyword? opcode)
-    (throw (ex-info (str "Cannot execute block marker " opcode) machine-state))
-    (let [o (int opcode)
-          a (address-a opcode)
-          b (address-b opcode)]
-      (case o
-        1 (exec-add machine-state a b)
-        2 (exec-add-and-clear machine-state a b)
-        3 (exec-subtract machine-state a b)
-        4 (exec-subtract-and-clear machine-state a b)
-        5 (exec-multiply machine-state a b)
-        6 (exec-divide machine-state a b)
-        7 (exec-transfer-positive-modulus machine-state a b)
-        0 (decode-control machine-state a b)
-        (throw (ex-info (str "Cannot decode opcode " o) machine-state))))))
+  (let [o (int opcode)
+        a (address-a opcode)
+        b (address-b opcode)]
+    (case o
+      1 (exec-add machine-state a b)
+      2 (exec-add-and-clear machine-state a b)
+      3 (exec-subtract machine-state a b)
+      4 (exec-subtract-and-clear machine-state a b)
+      5 (exec-multiply machine-state a b)
+      6 (exec-divide machine-state a b)
+      7 (exec-transfer-positive-modulus machine-state a b)
+      0 (decode-control machine-state a b)
+      (throw (ex-info (str "Cannot decode opcode " o) machine-state)))))
 
 (defn step
   "Fetch and decode one order"
   [machine-state]
-  (let [[opcode m] (m/read-src-address machine-state (:pc machine-state))]
-    (->
-      m
-      (decode opcode)
-      (m/verify-machine-state))))
+  (as->
+    machine-state $
+    (m/read-src-address-2 $ (:pc $))
+    (decode $ (:alu-src $))
+    (m/verify-machine-state $)))
 
 (defn run
   "Run the machine until it reaches a terminating instruction"

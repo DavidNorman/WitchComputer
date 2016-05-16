@@ -1,4 +1,5 @@
-(ns witch.tape-reader)
+(ns witch.tape-reader
+  (:require [clojure.pprint :as pp]))
 
 (def block-markers
   {"#0" :block0
@@ -46,7 +47,7 @@
 (defn read-tapes
   [args]
   (when-let [filename (first args)]
-    (println "Loading tapes:" filename)
+    (pp/cl-format true "Loading tapes ~a~%" filename)
     (into [] (->>
                (clojure.java.io/reader filename)
                (line-seq)

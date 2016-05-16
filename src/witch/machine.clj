@@ -4,10 +4,13 @@
 
 (def initial-machine-state
   {:registers       (into [] (repeat 90 0M))
-   :accumulator     0
-   :shift-value     1
-   :printing-layout 0
-   :pc              0
+   :accumulator     0M
+   :shift-value     1M
+   :printing-layout 0M
+   :pc              0M
+   :alu-src         0M
+   :alu-dst         0M
+   :alu-result      0M
    :sign-test       :false
    :tapes           [[]]
    :finished        false})
@@ -153,6 +156,11 @@
     9 (input-accumulator machine-state)
     (input-register machine-state address)))
 
+(defn read-src-address-2
+  [machine-state address]
+  (let [[v m] (read-src-address machine-state address)]
+    (assoc m :alu-src v)))
+
 (defn read-dst-address
   [machine-state address]
   (case address
@@ -160,15 +168,32 @@
     9 (input-accumulator machine-state)
     (input-register machine-state address)))
 
+(defn read-dst-address-2
+  [machine-state address]
+  (let [[v m] (read-dst-address machine-state address)]
+        (assoc m :alu-dst v)))
+
+
 (defn write-address
-  [machine-state address value]
-  (case address
-    0 (output-drain machine-state)
-    (1 3) (output-printer machine-state value)
-    (2 4) (output-perforator machine-state address value)
-    (5 6 7 8) (output-spare machine-state)
-    9 (output-accumulator machine-state value)
-    (output-register machine-state address value)))
+  ([machine-state address value]
+   (case address
+     0 (output-drain machine-state)
+     (1 3) (output-printer machine-state value)
+     (2 4) (output-perforator machine-state address value)
+     (5 6 7 8) (output-spare machine-state)
+     9 (output-accumulator machine-state value)
+     (output-register machine-state address value)))
+  ([machine-state address]
+   (write-address machine-state
+                  address
+                  (:alu-result machine-state))))
+
+(defn clear-address
+  [machine-state address]
+  (->
+    machine-state
+    (assoc :alu-result 0M)
+    (write-address address)))
 
 (defn advance-pc
   [machine-state]

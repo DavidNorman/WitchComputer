@@ -8,7 +8,7 @@
 (deftest initial-state
 
   (is (= (:registers m/initial-machine-state) (into [] (repeat 90 0M))))
-  (is (= (:shift-value m/initial-machine-state) 1))
+  (is (= (:shift-value m/initial-machine-state) 1M))
   (is (= (:finished m/initial-machine-state) false))
   )
 
