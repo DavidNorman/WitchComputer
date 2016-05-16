@@ -674,7 +674,70 @@
   )
 
 (deftest sign-examination
-  ;TODO
+
+  ; Positive true
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] 2.1M)
+           (assoc :tapes [[[nil 0.1110M]]])
+           (assoc :pc 1)
+           (d/step)
+           :sign-test)
+         true))
+
+
+  ; Negative true
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] -2.1M)
+           (assoc :tapes [[[nil 0.1210M]]])
+           (assoc :pc 1)
+           (d/step)
+           :sign-test)
+         true))
+
+  ; Positive false
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] -2.1M)
+           (assoc :tapes [[[nil 0.1110M]]])
+           (assoc :pc 1)
+           (d/step)
+           :sign-test)
+         false))
+
+
+  ; Negative false
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:registers 0] 2.1M)
+           (assoc :tapes [[[nil 0.1210M]]])
+           (assoc :pc 1)
+           (d/step)
+           :sign-test)
+         false))
+
+  ; Bad opcode
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc-in [:registers 0] 2.1M)
+                 (assoc :tapes [[[nil 0.1010M]]])
+                 (assoc :pc 1)
+                 (d/step)
+                 :sign-test)
+               false))
+
+  ; Bad opcode
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc-in [:registers 0] 2.1M)
+                 (assoc :tapes [[[nil 0.1310M]]])
+                 (assoc :pc 1)
+                 (d/step)
+                 :sign-test)
+               false))
   )
 
 (deftest signal

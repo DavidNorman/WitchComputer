@@ -159,6 +159,9 @@
 
 (defn exec-sign-examination
   [machine-state a b]
+  (when-not (#{1 2} (mod a 10))
+    (throw (ex-info "Invalid sign examination opcode" machine-state)))
+
   (as->
     machine-state $
     (m/read-src-address $ b)
