@@ -71,7 +71,7 @@
 ; Special input sources
 
 (defn input-roundoff
-  [machine-state key]
+  [machine-state key _]
   (assoc machine-state
     key
     (rand-int 2)))
@@ -87,7 +87,7 @@
     (update-in $ [:tapes (dec address)] rotate)))
 
 (defn input-last-7-digits-accumultor
-  [machine-state key]
+  [machine-state key _]
   (assoc machine-state
     key
     (->
@@ -97,7 +97,7 @@
       (* 10M))))
 
 (defn input-accumulator
-  [machine-state key]
+  [machine-state key _]
   (assoc machine-state
     key
     (:accumulator machine-state)))
@@ -108,14 +108,18 @@
     key
     (get (:registers machine-state) (- address 10))))
 
+(defn input-zero
+  [machine-state key _]
+  (assoc machine-state key 0M))
+
 ; Special write destinations
 
 (defn output-drain
-  [machine-state]
+  [machine-state _ _]
   machine-state)
 
 (defn output-printer
-  [machine-state value]
+  [machine-state _ value]
   (pp/cl-format
     true
     (case (:printing-layout machine-state)
@@ -136,11 +140,11 @@
   machine-state)
 
 (defn output-spare
-  [machine-state]
+  [machine-state _ _]
   machine-state)
 
 (defn output-accumulator
-  [machine-state value]
+  [machine-state _ value]
   (when (or (>= value 10) (<= value -10M))
     (throw (ex-info "Value out of range" machine-state)))
   (assoc machine-state :accumulator (round-places value 14)))
@@ -155,31 +159,43 @@
 
 ; General read and write
 
+(defn read-src-fn
+  [address]
+  (case address
+    0               input-roundoff
+    (1 2 3 4 5 6 7) input-tape
+    8               input-last-7-digits-accumultor
+    9               input-accumulator
+    input-register))
+
+(defn read-dst-fn
+  [address]
+  (case address
+    (0 1 2 3 4 5 6 7 8) input-zero
+    9                   input-accumulator
+    input-register))
+
+(defn write-fn
+  [address]
+  (case address
+    0         output-drain
+    (1 3)     output-printer
+    (2 4)     output-perforator
+    (5 6 7 8) output-spare
+    9         output-accumulator
+    output-register))
+
 (defn read-src-address
   [machine-state address]
-  (case address
-    0               (input-roundoff machine-state :alu-src)
-    (1 2 3 4 5 6 7) (input-tape machine-state :alu-src address)
-    8               (input-last-7-digits-accumultor machine-state :alu-src)
-    9               (input-accumulator machine-state :alu-src)
-                    (input-register machine-state :alu-src address)))
+  ((read-src-fn address) machine-state :alu-src address))
 
 (defn read-dst-address
   [machine-state address]
-  (case address
-    (0 1 2 3 4 5 6 7 8) (assoc machine-state :alu-dst 0M)
-    9                   (input-accumulator machine-state :alu-dst)
-                        (input-register machine-state :alu-dst address)))
+  ((read-dst-fn address) machine-state :alu-dst address))
 
 (defn write-address
   [machine-state address]
-  (case address
-    0         (output-drain machine-state)
-    (1 3)     (output-printer machine-state (:alu-result machine-state))
-    (2 4)     (output-perforator machine-state address (:alu-result machine-state))
-    (5 6 7 8) (output-spare machine-state)
-    9         (output-accumulator machine-state (:alu-result machine-state))
-    (output-register machine-state address (:alu-result machine-state))))
+  ((write-fn address) machine-state address (:alu-result machine-state)))
 
 
 (defn clear-address
