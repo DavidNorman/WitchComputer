@@ -5,7 +5,7 @@
 
 ; Values to multiply by when performing shifting
 (def shift-values
-  [10M, 1M, 0.1M, 0.01M, 0.001M, 0.0001M, 0.00001M, 0.000001M, 0.0000001M])
+  [0M 10M, 1M, 0.1M, 0.01M, 0.001M, 0.0001M, 0.00001M, 0.000001M, 0.0000001M])
 
 ; Keywords used by the block markers
 (def block-keywords
@@ -194,6 +194,9 @@
 
 (defn exec-set-shift-selection
   [machine-state a]
+  (when (= (mod a 10) 0)
+    (throw (ex-info "Invalid shift value" machine-state)))
+
   (->
     machine-state
     (assoc :shift-value (get shift-values (mod a 10)))

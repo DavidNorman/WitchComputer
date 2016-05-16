@@ -32,7 +32,7 @@
 51020
 
 ; Transfer X! back to stores (shifting by -1 at the same time)
-08200
+08300
 10820
 
 ; Print X, X!

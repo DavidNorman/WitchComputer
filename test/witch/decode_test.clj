@@ -111,7 +111,7 @@
                   m/initial-machine-state
                   (assoc-in [:registers 0] 0.1234M)
                   (assoc-in [:registers 10] 0.001M)
-                  (assoc :tapes [[[nil 0.8000] [nil 1.1020M]]])
+                  (assoc :tapes [[[nil 0.8100] [nil 1.1020M]]])
                   (assoc :pc 1)
                   (d/step)
                   (d/step)
@@ -286,7 +286,7 @@
            m/initial-machine-state
            (assoc-in [:registers 0] 0.1234M)
            (assoc-in [:registers 10] 0.001M)
-           (assoc :tapes [[[nil 0.8000] [nil 3.1020M]]])
+           (assoc :tapes [[[nil 0.8100] [nil 3.1020M]]])
            (assoc :pc 1)
            (d/step)
            (d/step)
@@ -471,7 +471,9 @@
                  (d/step))))
   )
 
-(deftest divide)
+(deftest divide
+  ;TODO
+  )
 
 (deftest transfer-modulus
 
@@ -498,14 +500,125 @@
          [1.234M 1.235M]))
   )
 
-(deftest set-print-layout)
+(deftest set-print-layout
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.7100M]]])
+           (assoc :pc 1)
+           (d/step)
+           :printing-layout)
+         1))
 
-(deftest set-shift)
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.7200M]]])
+           (assoc :pc 1)
+           (d/step)
+           :printing-layout)
+         2))
 
-(deftest search-tape)
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.7900M]]])
+           (assoc :pc 1)
+           (d/step)
+           :printing-layout)
+         9))
+  )
 
-(deftest transfer-control)
+(deftest set-shift
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc :tapes [[[nil 0.8000M]]])
+                 (assoc :pc 1)
+                 (d/step))))
 
-(deftest sign-examination)
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8100M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         10M))
 
-(deftest signal)
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8200M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         1M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8300M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.1M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8400M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.01M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8500M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.001M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8600M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.0001M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8700M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.00001M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8800M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.000001M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.8900M]]])
+           (assoc :pc 1)
+           (d/step)
+           :shift-value)
+         0.0000001M))
+  )
+
+(deftest search-tape
+  ;TODO
+  )
+
+(deftest transfer-control
+  ;TODO
+  )
+
+(deftest sign-examination
+  ;TODO
+  )
+
+(deftest signal
+  ;TODO
+  )
