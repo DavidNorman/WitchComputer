@@ -159,7 +159,7 @@
 
 (deftest search-tape
 
-  ; Find the next block1 marker and advance one entry past it
+  ; Find the next block1 marker
   (is (= (-> m/initial-machine-state
              (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
              (m/search-tape 1 :block1)

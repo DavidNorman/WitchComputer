@@ -147,10 +147,14 @@
 
 (defn exec-signal
   [machine-state a]
-  (pp/cl-format true "Signal ~a~%" a)
+  (when (> (mod a 10) 2)
+    (throw (ex-info "Invalid signal value" machine-state)))
+
+  (pp/cl-format true ">>> Signal ~a <<<~%" a)
+
   (->
     machine-state
-    (assoc :finished true)
+    (assoc :finished (> (mod a 10) 0))
     (m/advance-pc)))
 
 (defn exec-sign-examination

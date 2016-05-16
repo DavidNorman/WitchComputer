@@ -608,8 +608,27 @@
   )
 
 (deftest search-tape
-  ;TODO
+
+  ; Find the next block1 marker in executing tape
+  (is (= (-> m/initial-machine-state
+             (assoc :tapes [[[nil 0.3101M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
+             (assoc :pc 1)
+             (d/step)
+             (get-in [:tapes 0]))
+         [[:block1 4M] [:block1 5M] [:block2 6M] [nil 0.3101M] [nil 2M] [nil 3M]]))
+
+  ; Find the next block1 marker in another tape
+  (is (= (-> m/initial-machine-state
+             (assoc :tapes [[[nil 0.3203M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
+                            [[nil 1M] [nil 2M] [:block3 3M]]])
+             (assoc :pc 1)
+             (d/step)
+             :tapes)
+         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.3203M]]
+          [[:block3 3M] [nil 1M] [nil 2M]]]))
   )
+
+
 
 (deftest transfer-control
   ;TODO
@@ -620,5 +639,36 @@
   )
 
 (deftest signal
-  ;TODO
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.0000M]]])
+           (assoc :pc 1)
+           (d/step)
+           :finished)
+         false))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.0100M]]])
+           (assoc :pc 1)
+           (d/step)
+           :finished)
+         true))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :tapes [[[nil 0.0200M]]])
+           (assoc :pc 1)
+           (d/step)
+           :finished)
+         true))
+
+
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc :tapes [[[nil 0.0300M]]])
+                 (assoc :pc 1)
+                 (d/step))))
   )
