@@ -41,8 +41,8 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (a/apply-shift)
     (a/add)
     (m/write-address b)
@@ -53,11 +53,11 @@
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
-
+  
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (a/add)
     (m/write-address b)
     (m/clear-address a)
@@ -70,8 +70,8 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (a/apply-shift)
     (a/subtract)
     (m/write-address b)
@@ -85,8 +85,8 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (a/subtract)
     (m/write-address b)
     (m/clear-address a)
@@ -101,11 +101,11 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (a/multiply)
     (a/result-to-src)
-    (m/read-dst-address-2 9)
+    (m/read-dst-address 9)
     (a/add)
     (m/write-address 9)
     (m/clear-address b)
@@ -121,8 +121,8 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 9)
+    (m/read-src-address a)
+    (m/read-dst-address 9)
     (a/divide)
     (m/write-address b)
     (m/clear-address 9)
@@ -135,8 +135,8 @@
 
   (->
     machine-state
-    (m/read-src-address-2 a)
-    (m/read-dst-address-2 b)
+    (m/read-src-address a)
+    (m/read-dst-address b)
     (update :alu-src a/abs)
     (a/add)
     (m/write-address b)
@@ -157,7 +157,7 @@
   [machine-state a b]
   (as->
     machine-state $
-    (m/read-src-address-2 $ b)
+    (m/read-src-address $ b)
     (assoc $ :sign-test (if (= 1 (mod a 10))
                           (>= (:alu-src $) 0)
                           (< (:alu-src $) 0)))
@@ -240,7 +240,7 @@
   [machine-state]
   (as->
     machine-state $
-    (m/read-src-address-2 $ (:pc $))
+    (m/read-src-address $ (:pc $))
     (decode $ (:alu-src $))
     (m/verify-machine-state $)))
 

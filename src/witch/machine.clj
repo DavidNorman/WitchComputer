@@ -71,34 +71,42 @@
 ; Special input sources
 
 (defn input-roundoff
-  [machine-state]
-  [(rand-int 2) machine-state])
+  [machine-state key]
+  (assoc machine-state
+    key
+    (rand-int 2)))
 
 (defn input-tape
-  [machine-state address]
+  [machine-state key address]
   (when (> address (count (:tapes machine-state)))
     (throw (ex-info "Tape not available" machine-state)))
 
-  (let [m machine-state]
-    [(read-tape m address)
-     (update-in m [:tapes (dec address)] rotate)]))
+  (as->
+    machine-state $
+    (assoc $ key (read-tape $ address))
+    (update-in $ [:tapes (dec address)] rotate)))
 
 (defn input-last-7-digits-accumultor
-  [machine-state]
-  [(->
-     (:accumulator machine-state)
-     (* 10000000M)
-     (rem 1M)
-     (* 10M))
-   machine-state])
+  [machine-state key]
+  (assoc machine-state
+    key
+    (->
+      (:accumulator machine-state)
+      (* 10000000M)
+      (rem 1M)
+      (* 10M))))
 
 (defn input-accumulator
-  [machine-state]
-  [(:accumulator machine-state) machine-state])
+  [machine-state key]
+  (assoc machine-state
+    key
+    (:accumulator machine-state)))
 
 (defn input-register
-  [machine-state address]
-  [(get (:registers machine-state) (- address 10)) machine-state])
+  [machine-state key address]
+  (assoc machine-state
+    key
+    (get (:registers machine-state) (- address 10))))
 
 ; Special write destinations
 
@@ -150,43 +158,29 @@
 (defn read-src-address
   [machine-state address]
   (case address
-    0 (input-roundoff machine-state)
-    (1 2 3 4 5 6 7) (input-tape machine-state address)
-    8 (input-last-7-digits-accumultor machine-state)
-    9 (input-accumulator machine-state)
-    (input-register machine-state address)))
-
-(defn read-src-address-2
-  [machine-state address]
-  (let [[v m] (read-src-address machine-state address)]
-    (assoc m :alu-src v)))
+    0               (input-roundoff machine-state :alu-src)
+    (1 2 3 4 5 6 7) (input-tape machine-state :alu-src address)
+    8               (input-last-7-digits-accumultor machine-state :alu-src)
+    9               (input-accumulator machine-state :alu-src)
+                    (input-register machine-state :alu-src address)))
 
 (defn read-dst-address
   [machine-state address]
   (case address
-    (0 1 2 3 4 5 6 7 8) [0M machine-state]
-    9 (input-accumulator machine-state)
-    (input-register machine-state address)))
-
-(defn read-dst-address-2
-  [machine-state address]
-  (let [[v m] (read-dst-address machine-state address)]
-        (assoc m :alu-dst v)))
-
+    (0 1 2 3 4 5 6 7 8) (assoc machine-state :alu-dst 0M)
+    9                   (input-accumulator machine-state :alu-dst)
+                        (input-register machine-state :alu-dst address)))
 
 (defn write-address
-  ([machine-state address value]
-   (case address
-     0 (output-drain machine-state)
-     (1 3) (output-printer machine-state value)
-     (2 4) (output-perforator machine-state address value)
-     (5 6 7 8) (output-spare machine-state)
-     9 (output-accumulator machine-state value)
-     (output-register machine-state address value)))
-  ([machine-state address]
-   (write-address machine-state
-                  address
-                  (:alu-result machine-state))))
+  [machine-state address]
+  (case address
+    0         (output-drain machine-state)
+    (1 3)     (output-printer machine-state (:alu-result machine-state))
+    (2 4)     (output-perforator machine-state address (:alu-result machine-state))
+    (5 6 7 8) (output-spare machine-state)
+    9         (output-accumulator machine-state (:alu-result machine-state))
+    (output-register machine-state address (:alu-result machine-state))))
+
 
 (defn clear-address
   [machine-state address]
