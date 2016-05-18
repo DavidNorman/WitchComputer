@@ -57,11 +57,11 @@
   (is (= (n/add (n/to-nines 2.0M) (n/to-nines -3.00004M))
          (n/to-nines -1.00004M)))
 
-  (is (= (n/add 01.0000000 98.9999999)
-         99.9999999))
+  (is (= (n/add 01.0000000M 98.9999999M)
+         99.9999999M))
 
-  (is (= (n/add 00.0000000 99.9999999)
-         99.9999999))
+  (is (= (n/add 00.0000000M 99.9999999M)
+         99.9999999M))
   )
 
 (deftest subtract
@@ -77,17 +77,41 @@
   (is (= (n/subtract (n/to-nines 2.0M) (n/to-nines 3.00004M))
          (n/to-nines -1.00004M)))
 
-  (is (= (n/subtract 01.0000000 01.0000000)
-         99.9999999))
+  (is (= (n/subtract 01.0000000M 01.0000000M)
+         99.9999999M))
 
-  (is (= (n/subtract 00.0000000 99.9999999)
-         00.0000000))
+  (is (= (n/subtract 00.0000000M 99.9999999M)
+         00.0000000M))
 
-  (is (= (n/subtract 00.0000000 00.0000000)
-         99.9999999))
+  (is (= (n/subtract 00.0000000M 00.0000000M)
+         99.9999999M))
   )
 
-(deftest multiply)
+(deftest multiply
+  (is (= (n/multiply (n/to-nines 2M) (n/to-nines 1M))
+         (n/to-nines 2M)))
+
+  (is (= (n/multiply (n/to-nines 1.222M) (n/to-nines 1.111M))
+         (n/to-nines 1.357642M)))
+
+  (is (= (n/multiply (n/to-nines -2.0M) (n/to-nines -0.04M))
+         (n/to-nines 0.08M)))
+
+  (is (= (n/multiply (n/to-nines 3.0M) (n/to-nines -3.00004M))
+         (n/to-nines -9.00012M)))
+
+  (is (= (n/multiply (n/to-nines -2.0M) (n/to-nines 3.00004M))
+         (n/to-nines -6.00008M)))
+
+  (is (= (n/multiply 00.0000000M 01.0000000M)
+         00.0000000M))
+
+  (is (= (n/multiply 00.0000000M 99.9999999M)
+         00.0000000M))
+
+  (is (= (n/multiply 99.9999999M 99.9999999M)
+         00.0000000M))
+  )
 
 (deftest divide)
 

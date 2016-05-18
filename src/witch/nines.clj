@@ -53,13 +53,29 @@
 
 (defn multiply
   [a b]
-  (carry-over (* a b)))
+  (to-nines
+    (*
+      (from-nines a)
+      (from-nines b))))
 
 (defn divide
   [a b]
-  (carry-over (/ a b)))
+  (to-nines
+    (/
+      (from-nines a)
+      (from-nines b))))
 
 (defn positive?
   [a]
   (< a 50M))
+
+(defn shift
+  [a factor]
+  (let [sign-extend (* (quot a 10M) 111111100M)]
+    (->
+      a
+      (+ sign-extend)
+      (* factor)
+      (mod 100M)
+      (round-places 7))))
 
