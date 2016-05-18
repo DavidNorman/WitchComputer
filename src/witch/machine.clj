@@ -1,5 +1,6 @@
 (ns witch.machine
-  (:require [clojure.pprint :as pp]))
+  (:require [witch.nines :as n]
+            [clojure.pprint :as pp]))
 
 
 (def initial-machine-state
@@ -15,17 +16,6 @@
    :tapes           [[]]
    :finished        false})
 
-
-(defn round-places
-  [x places]
-  "Round a bigdec to a certain number of decimal places"
-  (let [factor (apply * (repeat places 10M))]
-    (->
-      x
-      (* factor)
-      (bigint)
-      (bigdec)
-      (/ factor))))
 
 (defn rotate
   "Rotate a sequence fn by 1"
@@ -147,7 +137,7 @@
   [machine-state _ value]
   (when (or (>= value 10) (<= value -10M))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc machine-state :accumulator (round-places value 14)))
+  (assoc machine-state :accumulator (n/round-places value 14)))
 
 (defn output-register
   [machine-state address value]
@@ -155,7 +145,7 @@
     (throw (ex-info "Register out of range" machine-state)))
   (when (or (>= value 10) (<= value -10M))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc-in machine-state [:registers (- address 10)] (round-places value 7)))
+  (assoc-in machine-state [:registers (- address 10)] (n/round-places value 7)))
 
 ; General read and write
 
