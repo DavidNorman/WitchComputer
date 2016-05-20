@@ -113,7 +113,13 @@
          00.0000000M))
   )
 
-(deftest divide)
+(deftest divide
+
+  ;;TODO remainders, positive zero dividend (and negative zero?)
+
+  (is (= (n/divide 00.0000000M 01.0000000M)
+         00.0000000M))
+  )
 
 (deftest examine-sign
   (is (= (n/positive? (n/to-nines 1M))
