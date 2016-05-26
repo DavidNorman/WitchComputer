@@ -13,59 +13,67 @@
 (defn to-nines
   "Convert a BigDecimal into nines complement representation"
   [x]
-  (with-precision 17
-    (if (< x 0M) (+ 99.9999999M x) x)))
+    (if (< x 0M)
+      (+ 99.9999999M x)
+      (+ 00.0000000M x)))
 
 (defn from-nines
   "Convert a BigDecimal from nines complement representation"
   [x]
-  (with-precision 17
-    (if (> x 10M) (- x 99.9999999M) x)))
+  (if (> x 10M)
+    (- x 99.9999999M) x))
 
 (defn pow10
   "Generate 10 to the power of X"
   [x]
-  (apply * (repeat x 10M)))
+  (.scaleByPowerOfTen 1.0M x))
 
-(defn round-places
+(defn adjust-places
   [x places]
-  "Round a bigdec to a certain number of decimal places"
-  (let [factor (pow10 places)]
-    (->
-      x
-      (mod 100M)
-      (* factor)
-      (bigint)
-      (bigdec)
-      (/ factor))))
+  "Round/extend a bigdec to a certain number of decimal places. After extension
+  there will always be one digit and a sign digit to the left of the decimal point"
+  (->
+    x
+    (.setScale places java.math.RoundingMode/DOWN)
+    (mod 100M)))
 
 (defn carry-over
   "Add the nines complement overflow back into the result"
   [a m n]
-  (+ (/ (quot a (pow10 m)) (pow10 n)) (mod a 100M)))
+  (let [carry (.setScale (quot a (pow10 m)) 0)]
+    (->
+      a
+      (+ (.movePointLeft carry n))
+      (mod (pow10 m)))))
 
 (defn negate
   "Find the nines complement negative of a number"
   [a]
-  (- 99.9999999M a))
+  (- 100M a (.movePointLeft 1.0M (.scale a))))
 
 (defn add
   "Add together 2 nines complement numbers"
   [a b]
-  (carry-over (+ a b) 2 7))
+  (carry-over (+ a b) 2 (.scale a)))
 
 (defn subtract
   [a b]
-  (carry-over (+ a (negate b)) 2 7))
+  (carry-over (+ a (negate b)) 2 (.scale a)))
+
+(defn sign-extend
+  "Sign extend a representation of a store to
+  prepare for multiplication"
+  [x]
+  (let [sign (bigint (quot x 10M))]
+    (+
+      (bigint (.movePointRight x 10))
+      (* sign 111))))
 
 (defn multiply
-  [a b]
-  (let [ext-a (+ a (* (quot a 10M) 111111100.00000001111111M))
-        ext-b (+ b (* (quot b 10M) 111111100.00000001111111M))]
-    (->
-      (* ext-a ext-b)
-      (carry-over 9 14)
-      (round-places 14))))
+  [src dst acc]
+  (let [isrc (sign-extend src)
+        idst (sign-extend dst)]
+    (.movePointLeft (bigdec (* isrc idst)) 20)))
 
 (defn divide
   [a b]
@@ -79,12 +87,14 @@
   [a]
   (< a 50M))
 
+(def negative? (comp not positive?))
+
 (defn shift
   [a factor]
-  (let [sign-extend (* (quot a 10M) 111111100M)]
-    (->
-      a
-      (+ sign-extend)
-      (* factor)
-      (round-places 7))))
+  (->
+    a
+    (+ (* (quot a 10M) 111111100M))
+    (+ (.movePointLeft (quot a 10M) (inc (.scale a))))
+    (* factor)
+    (adjust-places (.scale a))))
 

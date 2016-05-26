@@ -1,4 +1,5 @@
-(ns witch.alu)
+(ns witch.alu
+  (:require [witch.nines :as n]))
 
 (defn abs
   [v]
@@ -14,33 +15,37 @@
   [machine-state fn]
   (assoc machine-state
     :alu-result
-    (with-precision 15
-      (fn
-        (:alu-dst machine-state)
-        (:alu-src machine-state)))))
+    (fn
+      (:alu-dst machine-state)
+      (:alu-src machine-state))))
 
 (defn apply-shift
   "Shift the source operand by the shift index"
   [machine-state]
-  (update machine-state :alu-src * (:shift-value machine-state)))
+  (update machine-state :alu-src n/shift (:shift-value machine-state)))
 
 (defn add
   "Adds ALU operands"
   [machine-state]
-  (apply-alu-op machine-state +))
+  (apply-alu-op machine-state n/add))
 
 (defn subtract
   "Subtracts ALU operands"
   [machine-state]
-  (apply-alu-op machine-state -))
+  (apply-alu-op machine-state n/subtract))
 
 (defn multiply
   "Multiplies ALU operands"
   [machine-state]
-  (apply-alu-op machine-state *))
+  (assoc machine-state
+    :alu-result
+    (n/multiply
+      (:alt-src machine-state)
+      (:alu-dst machine-state)
+      (:accumulator machine-state))))
 
 (defn divide
   "Divides ALU operands"
   [machine-state]
-  (apply-alu-op machine-state /))
+  (apply-alu-op machine-state n/divide))
 

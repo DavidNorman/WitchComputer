@@ -4,14 +4,14 @@
 
 
 (def initial-machine-state
-  {:registers       (into [] (repeat 90 0M))
-   :accumulator     0M
+  {:registers       (into [] (repeat 90 0.0000000M))
+   :accumulator     0.00000000000000M
    :shift-value     1M
    :printing-layout 0M
    :pc              0M
-   :alu-src         0M
-   :alu-dst         0M
-   :alu-result      0M
+   :alu-src         0.0000000M
+   :alu-dst         0.0000000M
+   :alu-result      0.0000000M
    :sign-test       :false
    :tapes           [[]]
    :finished        false})
@@ -21,15 +21,6 @@
   "Rotate a sequence fn by 1"
   [seq]
   (take (count seq) (drop 1 (cycle seq))))
-
-(defn verify-machine-state
-  "Verify that the machine state is valid"
-  [machine-state]
-  (when (some #(>= % +10M) (:registers machine-state))
-    (throw (ex-info "Illegal machine state: register >= 10" machine-state)))
-  (when (some #(<= % -10M) (:registers machine-state))
-    (throw (ex-info "Illegal machine state: register <= -10\n" machine-state)))
-  machine-state)
 
 ; Input from tape
 
@@ -135,17 +126,17 @@
 
 (defn output-accumulator
   [machine-state _ value]
-  (when (or (>= value 10) (<= value -10M))
+  (when (not (#{0M 9M} (quot value 10M)))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc machine-state :accumulator (n/round-places value 14)))
+  (assoc machine-state :accumulator (n/adjust-places value 14)))
 
 (defn output-register
   [machine-state address value]
   (when (>= address 100)
     (throw (ex-info "Register out of range" machine-state)))
-  (when (or (>= value 10) (<= value -10M))
+  (when (not (#{0M 9M} (quot value 10M)))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc-in machine-state [:registers (- address 10)] (n/round-places value 7)))
+  (assoc-in machine-state [:registers (- address 10)] (n/adjust-places value 7)))
 
 ; General read and write
 

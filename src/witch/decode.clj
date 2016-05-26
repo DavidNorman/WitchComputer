@@ -1,7 +1,8 @@
 (ns witch.decode
   (:require [witch.machine :as m]
             [witch.alu :as a]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [witch.nines :as n]))
 
 ; Values to multiply by when performing shifting
 (def shift-values
@@ -166,8 +167,8 @@
     machine-state $
     (m/read-src-address $ b)
     (assoc $ :sign-test (if (= 1 (mod a 10))
-                          (>= (:alu-src $) 0)
-                          (< (:alu-src $) 0)))
+                          (n/positive? (:alu-src $))
+                          (n/negative? (:alu-src $))))
     (m/advance-pc $)))
 
 (defn exec-transfer-control
@@ -251,8 +252,7 @@
   (as->
     machine-state $
     (m/read-src-address $ (:pc $))
-    (decode $ (:alu-src $))
-    (m/verify-machine-state $)))
+    (decode $ (:alu-src $))))
 
 (defn run
   "Run the machine until it reaches a terminating instruction"

@@ -34,11 +34,11 @@
 
   ; negative number
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result -5M)
+             (assoc :alu-result 95.9999999M)
              (m/write-address 21)
              :registers
              (get 11))
-         -5M))
+         95.9999999M))
 
   ; truncated number
   (is (= (-> m/initial-machine-state
