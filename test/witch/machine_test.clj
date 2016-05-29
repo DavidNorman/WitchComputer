@@ -173,6 +173,37 @@
          -8.912345M))
   )
 
+(deftest clear
+
+  ;typical
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 2.0000000M)
+             (m/clear-address 10)
+             :stores
+             (get 0))
+         0.0000000M))
+
+  ; another
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 2.0000000M)
+             (m/clear-address 20)
+             :stores
+             (get 10))
+         0.0000000M))
+
+  ; accumulator
+  (is (= (-> m/initial-machine-state
+             (assoc :accumulator 2.0000000M)
+             (m/clear-address 9)
+             :accumulator)
+         0.00000000000000M))
+
+  ; register out of range
+  (is (thrown? ExceptionInfo
+               (-> m/initial-machine-state
+                   (assoc :transfer-output 0M)
+                   (m/clear-address 100))))
+  )
 
 ; Operations
 
@@ -210,6 +241,9 @@
 
   )
 
+(deftest transfer
+
+  )
 
 (deftest advance-pc
 
