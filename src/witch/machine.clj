@@ -134,7 +134,9 @@
   [machine-state _ value]
   (when (not (#{0M 9M} (quot value 10M)))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc machine-state :accumulator (n/adjust-places value 14)))
+  (let [old-val (:accumulator machine-state)
+        new-val (n/adjust-places (+ old-val value) 14)]
+    (assoc machine-state :accumulator new-val)))
 
 (defn output-store
   [machine-state address value]
@@ -142,7 +144,10 @@
     (throw (ex-info "Register out of range" machine-state)))
   (when (not (#{0M 9M} (quot value 10M)))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc-in machine-state [:stores (- address 10)] (n/adjust-places value 7)))
+  (let [a (- address 10)
+        old-val (get-in machine-state [:stores a])
+        new-val (n/adjust-places (+ old-val value) 7)]
+    (assoc-in machine-state [:stores a] new-val)))
 
 ; Clear functions
 
@@ -169,13 +174,6 @@
     (1 2 3 4 5 6 7) input-tape
     8               input-last-7-digits-accumultor
     9               input-accumulator
-    input-store))
-
-(defn read-dst-fn
-  [address]
-  (case address
-    (0 1 2 3 4 5 6 7 8) input-zero
-    9                   input-accumulator
     input-store))
 
 (defn write-fn

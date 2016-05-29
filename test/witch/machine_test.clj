@@ -7,8 +7,9 @@
 
 (deftest initial-state
 
-  (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0M))))
+  (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0.0000000M))))
   (is (= (:transfer-shift m/initial-machine-state) 1M))
+  (is (= (:transfer-complement m/initial-machine-state) false))
   (is (= (:finished m/initial-machine-state) false))
   )
 
@@ -18,15 +19,17 @@
 
   ; typical write
   (is (= (-> m/initial-machine-state
-             (assoc :transfer-output 1M)
+             (assoc :transfer-output 1.00000000000000M)
+             (assoc-in [:stores 0] 0.0000000M)
              (m/write-address 10)
              :stores
              (get 0))
-         1M))
+         1.0000000M))
 
   ; another address
   (is (= (-> m/initial-machine-state
-             (assoc :transfer-output 7.123456M)
+             (assoc :transfer-output 7.1234560000000M)
+             (assoc-in [:stores 0] 0.0000000M)
              (m/write-address 20)
              :stores
              (get 10))
@@ -34,19 +37,39 @@
 
   ; negative number
   (is (= (-> m/initial-machine-state
-             (assoc :transfer-output 95.9999999M)
+             (assoc :transfer-output 95.99999999999999M)
+             (assoc-in [:stores 0] 0.00000000M)
              (m/write-address 21)
              :stores
              (get 11))
          95.9999999M))
 
+  ; summation
+  (is (= (-> m/initial-machine-state
+             (assoc :transfer-output 1.00000000000000M)
+             (assoc-in [:stores 0] 1.0000000M)
+             (m/write-address 10)
+             :stores
+             (get 0))
+         2.0000000M))
+
+  ; summation of negative number
+  (is (= (-> m/initial-machine-state
+             (assoc :transfer-output 97.99999999999999M)
+             (assoc-in [:stores 0] 1.0000000M)
+             (m/write-address 10)
+             :stores
+             (get 0))
+         98.9999999M))
+
   ; truncated number
   (is (= (-> m/initial-machine-state
-             (assoc :transfer-output 0.00000001M)
+             (assoc :transfer-output 0.000000010000000M)
+             (assoc-in [:stores 0] 0.0M)
              (m/write-address 21)
              :stores
              (get 11))
-         0M))
+         0.0000000M))
 
   ; register out of range
   (is (thrown? ExceptionInfo
@@ -71,17 +94,35 @@
 
   ; typical write
   (is (= (-> m/initial-machine-state
-             (assoc :transfer-output 1M)
+             (assoc :transfer-output 1.00000000000000M)
+             (assoc :accumulator 0.00000000000000M)
              (m/write-address 9)
              :accumulator)
-         1M))
+         1.00000000000000M))
 
   ; truncated
   (is (= (-> m/initial-machine-state
              (assoc :transfer-output 1.111111111111111M)
+             (assoc :accumulator 0.00000000000000M)
              (m/write-address 9)
              :accumulator)
          1.11111111111111M))
+
+  ; summation
+  (is (= (-> m/initial-machine-state
+             (assoc :transfer-output 1.00000000000000M)
+             (assoc :accumulator 1.00000000000000M)
+             (m/write-address 9)
+             :accumulator)
+         2.00000000000000M))
+
+  ; summation of negative number
+  (is (= (-> m/initial-machine-state
+             (assoc :transfer-output 97.99999999999999M)
+             (assoc :accumulator 1.00000000000000M)
+             (m/write-address 9)
+             :accumulator)
+         98.99999999999999M))
 
   ; number out of range
   (is (thrown? ExceptionInfo
@@ -102,20 +143,20 @@
 
   ; typical read of source value
   (is (= (-> m/initial-machine-state
-             (assoc-in [:stores 0] 1.01M)
+             (assoc-in [:stores 0] 1.0100000M)
              (m/read-sending-address 10)
              :sending-value)
-         1.01M))
+         1.0100000M))
   )
 
 (deftest read-from-accumulator
 
   ; typical read of source value (top 8 digits)
   (is (= (-> m/initial-machine-state
-             (assoc :accumulator 1.01M)
+             (assoc :accumulator 1.0100000M)
              (m/read-sending-address 9)
              :sending-value)
-         1.01M))
+         1.0100000M))
 
   ; typical read of source value (top 8 digits)
   (is (= (-> m/initial-machine-state
