@@ -42,12 +42,11 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (a/apply-shift)
-    (a/add)
+    (assoc :transfer-complement false)
+    (m/read-sending-address a)
+    (m/transfer)
     (m/write-address b)
-    (assoc :shift-value 1)
+    (assoc :transfer-shift 1)
     (m/advance-pc)))
 
 (defn exec-add-and-clear
@@ -57,9 +56,9 @@
   
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (a/add)
+    (assoc :transfer-complement false)
+    (m/read-sending-address a)
+    (m/transfer)
     (m/write-address b)
     (m/clear-address a)
     (m/advance-pc)))
@@ -71,12 +70,11 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (a/apply-shift)
-    (a/subtract)
+    (assoc :transfer-complement true)
+    (m/read-sending-address a)
+    (m/transfer)
     (m/write-address b)
-    (assoc :shift-value 1)
+    (assoc :transfer-shift 1)
     (m/advance-pc)))
 
 (defn exec-subtract-and-clear
@@ -86,9 +84,9 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (a/subtract)
+    (assoc :transfer-complement true)
+    (m/read-sending-address a)
+    (m/transfer)
     (m/write-address b)
     (m/clear-address a)
     (m/advance-pc)))
@@ -102,14 +100,7 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (a/multiply)
-    (a/result-to-src)
-    (m/read-dst-address 9)
-    (a/add)
-    (m/write-address 9)
-    (m/clear-address b)
+    (m/read-sending-address a)
     (m/advance-pc)))
 
 ; todo remainder in accumulator
@@ -122,11 +113,7 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address 9)
-    (a/divide)
-    (m/write-address b)
-    (m/clear-address 9)
+    (m/read-sending-address a)
     (m/advance-pc)))
 
 (defn exec-transfer-positive-modulus
@@ -136,12 +123,8 @@
 
   (->
     machine-state
-    (m/read-src-address a)
-    (m/read-dst-address b)
-    (update :alu-src a/abs)
-    (a/add)
-    (m/write-address b)
-    (assoc :shift-value 1)
+    (m/read-sending-address a)
+    (assoc :transfer-shift 1)
     (m/advance-pc)))
 
 ; Control instruction decodes
@@ -165,10 +148,10 @@
 
   (as->
     machine-state $
-    (m/read-src-address $ b)
+    (m/read-sending-address $ b)
     (assoc $ :sign-test (if (= 1 (mod a 10))
-                          (n/positive? (:alu-src $))
-                          (n/negative? (:alu-src $))))
+                          (n/positive? (:sending-value $))
+                          (n/negative? (:sending-value $))))
     (m/advance-pc $)))
 
 (defn exec-transfer-control
@@ -207,7 +190,7 @@
 
   (->
     machine-state
-    (assoc :shift-value (get shift-values (mod a 10)))
+    (assoc :transfer-shift (get shift-values (mod a 10)))
     (m/advance-pc)))
 
 (defn decode-control
@@ -251,8 +234,8 @@
   [machine-state]
   (as->
     machine-state $
-    (m/read-src-address $ (:pc $))
-    (decode $ (:alu-src $))))
+    (m/read-sending-address $ (:pc $))
+    (decode $ (:sending-value $))))
 
 (defn run
   "Run the machine until it reaches a terminating instruction"

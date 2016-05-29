@@ -8,7 +8,7 @@
 (defn result-to-src
   "Use the result of a previous ALU operation as the source operand for the next"
   [machine-state]
-  (assoc machine-state :alu-src (:alu-result machine-state)))
+  (assoc machine-state :sending-value (:transfer-output machine-state)))
 
 (defn apply-shift
   "Shift the source operand by the shift index"

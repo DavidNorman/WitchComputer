@@ -8,7 +8,7 @@
 (deftest initial-state
 
   (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0M))))
-  (is (= (:shift-value m/initial-machine-state) 1M))
+  (is (= (:transfer-shift m/initial-machine-state) 1M))
   (is (= (:finished m/initial-machine-state) false))
   )
 
@@ -18,7 +18,7 @@
 
   ; typical write
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 1M)
+             (assoc :transfer-output 1M)
              (m/write-address 10)
              :stores
              (get 0))
@@ -26,7 +26,7 @@
 
   ; another address
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 7.123456M)
+             (assoc :transfer-output 7.123456M)
              (m/write-address 20)
              :stores
              (get 10))
@@ -34,7 +34,7 @@
 
   ; negative number
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 95.9999999M)
+             (assoc :transfer-output 95.9999999M)
              (m/write-address 21)
              :stores
              (get 11))
@@ -42,7 +42,7 @@
 
   ; truncated number
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 0.00000001M)
+             (assoc :transfer-output 0.00000001M)
              (m/write-address 21)
              :stores
              (get 11))
@@ -51,19 +51,19 @@
   ; register out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :alu-result 0M)
+                   (assoc :transfer-output 0M)
                    (m/write-address 100))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :alu-result 11M)
+                   (assoc :transfer-output 11M)
                    (m/write-address 10))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :alu-result -10M)
+                   (assoc :transfer-output -10M)
                    (m/write-address 10))))
   )
 
@@ -71,14 +71,14 @@
 
   ; typical write
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 1M)
+             (assoc :transfer-output 1M)
              (m/write-address 9)
              :accumulator)
          1M))
 
   ; truncated
   (is (= (-> m/initial-machine-state
-             (assoc :alu-result 1.111111111111111M)
+             (assoc :transfer-output 1.111111111111111M)
              (m/write-address 9)
              :accumulator)
          1.11111111111111M))
@@ -86,13 +86,13 @@
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :alu-result 10M)
+                   (assoc :transfer-output 10M)
                    (m/write-address 10))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :alu-result -10M)
+                   (assoc :transfer-output -10M)
                    (m/write-address 10))))
   )
 
@@ -103,16 +103,9 @@
   ; typical read of source value
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.01M)
-             (m/read-src-address 10)
-             :alu-src)
+             (m/read-sending-address 10)
+             :sending-value)
          1.01M))
-
-  ; typical read of desination value
-  (is (= (-> m/initial-machine-state
-             (assoc-in [:stores 11] -1.01M)
-             (m/read-dst-address 21)
-             :alu-dst)
-         -1.01M))
   )
 
 (deftest read-from-accumulator
@@ -120,38 +113,23 @@
   ; typical read of source value (top 8 digits)
   (is (= (-> m/initial-machine-state
              (assoc :accumulator 1.01M)
-             (m/read-src-address 9)
-             :alu-src)
+             (m/read-sending-address 9)
+             :sending-value)
          1.01M))
-
-  ; typical read of desination value (top 8 digits)
-  (is (= (-> m/initial-machine-state
-             (assoc :accumulator -1.01M)
-             (m/read-dst-address 9)
-             :alu-dst)
-         -1.01M))
 
   ; typical read of source value (top 8 digits)
   (is (= (-> m/initial-machine-state
              (assoc :accumulator 0.12345678912345M)
-             (m/read-src-address 8)
-             :alu-src)
+             (m/read-sending-address 8)
+             :sending-value)
          8.912345M))
 
   ; typical read of source value (top 8 digits, negative)
   (is (= (-> m/initial-machine-state
              (assoc :accumulator -0.12345678912345M)
-             (m/read-src-address 8)
-             :alu-src)
+             (m/read-sending-address 8)
+             :sending-value)
          -8.912345M))
-
-  ; typical read of desination value (top 8 digits)
-  (is (= (-> m/initial-machine-state
-             (assoc :accumulator -0.12345678912345M)
-             (m/read-dst-address 8)
-             :alu-dst)
-         0M))
-
   )
 
 
@@ -172,14 +150,14 @@
   ; Returns the correct value
   (is (= (-> m/initial-machine-state
              (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-             (m/input-tape :alu-src 1)
-             :alu-src)
+             (m/input-tape :sending-value 1)
+             :sending-value)
          1M))
 
   ; Moves the tape forward
   (is (= (-> m/initial-machine-state
              (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-             (m/input-tape :alu-src 1)
+             (m/input-tape :sending-value 1)
              (get-in [:tapes 0]))
          [[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 1M]]))
 
@@ -187,7 +165,7 @@
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
                    (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-                   (m/input-tape :alu-src 2))))
+                   (m/input-tape :sending-value 2))))
 
   )
 

@@ -4,17 +4,16 @@
 
 
 (def initial-machine-state
-  {:stores          (into [] (repeat 90 0.0000000M))
-   :accumulator     0.00000000000000M
-   :shift-value     1M
-   :printing-layout 0M
-   :pc              0M
-   :alu-src         0.0000000M
-   :alu-dst         0.0000000M
-   :alu-result      0.0000000M
-   :sign-test       :false
-   :tapes           [[]]
-   :finished        false})
+  {:stores              (into [] (repeat 90 0.0000000M))
+   :accumulator         0.00000000000000M
+   :transfer-shift      1M
+   :transfer-complement false
+   :transfer-output     0.00000000000000M
+   :printing-layout     0M
+   :pc                  0M
+   :sign-test           :false
+   :tapes               [[]]
+   :finished            false})
 
 
 (defn rotate
@@ -48,8 +47,13 @@
   (pp/cl-format true "~a~%" machine-state)
   machine-state)
 
-; Store / Accumulator summation
+; Transfer unit
 
+(defn transfer
+  "Perform the transfer (and transformation) of the source value.  The
+   value is shifted by the shift amount, and complemented if required."
+  [machine-state]
+  machine-state)
 
 ; Special input sources
 
@@ -191,18 +195,13 @@
     9         clear-accumulator
     clear-store))
 
-(defn read-src-address
+(defn read-sending-address
   [machine-state address]
-  ((read-src-fn address) machine-state :alu-src address))
-
-(defn read-dst-address
-  [machine-state address]
-  ((read-dst-fn address) machine-state :alu-dst address))
+  ((read-src-fn address) machine-state :sending-value address))
 
 (defn write-address
   [machine-state address]
-  ((write-fn address) machine-state address (:alu-result machine-state)))
-
+  ((write-fn address) machine-state address (:transfer-output machine-state)))
 
 (defn clear-address
   [machine-state address]
