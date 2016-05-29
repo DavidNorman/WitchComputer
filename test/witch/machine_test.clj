@@ -7,7 +7,7 @@
 
 (deftest initial-state
 
-  (is (= (:registers m/initial-machine-state) (into [] (repeat 90 0M))))
+  (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0M))))
   (is (= (:shift-value m/initial-machine-state) 1M))
   (is (= (:finished m/initial-machine-state) false))
   )
@@ -20,7 +20,7 @@
   (is (= (-> m/initial-machine-state
              (assoc :alu-result 1M)
              (m/write-address 10)
-             :registers
+             :stores
              (get 0))
          1M))
 
@@ -28,7 +28,7 @@
   (is (= (-> m/initial-machine-state
              (assoc :alu-result 7.123456M)
              (m/write-address 20)
-             :registers
+             :stores
              (get 10))
          7.123456M))
 
@@ -36,7 +36,7 @@
   (is (= (-> m/initial-machine-state
              (assoc :alu-result 95.9999999M)
              (m/write-address 21)
-             :registers
+             :stores
              (get 11))
          95.9999999M))
 
@@ -44,7 +44,7 @@
   (is (= (-> m/initial-machine-state
              (assoc :alu-result 0.00000001M)
              (m/write-address 21)
-             :registers
+             :stores
              (get 11))
          0M))
 
@@ -102,14 +102,14 @@
 
   ; typical read of source value
   (is (= (-> m/initial-machine-state
-             (assoc-in [:registers 0] 1.01M)
+             (assoc-in [:stores 0] 1.01M)
              (m/read-src-address 10)
              :alu-src)
          1.01M))
 
   ; typical read of desination value
   (is (= (-> m/initial-machine-state
-             (assoc-in [:registers 11] -1.01M)
+             (assoc-in [:stores 11] -1.01M)
              (m/read-dst-address 21)
              :alu-dst)
          -1.01M))

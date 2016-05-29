@@ -4,7 +4,7 @@
 
 
 (def initial-machine-state
-  {:registers       (into [] (repeat 90 0.0000000M))
+  {:stores          (into [] (repeat 90 0.0000000M))
    :accumulator     0.00000000000000M
    :shift-value     1M
    :printing-layout 0M
@@ -48,6 +48,8 @@
   (pp/cl-format true "~a~%" machine-state)
   machine-state)
 
+; Store / Accumulator summation
+
 
 ; Special input sources
 
@@ -83,11 +85,11 @@
     key
     (:accumulator machine-state)))
 
-(defn input-register
+(defn input-store
   [machine-state key address]
   (assoc machine-state
     key
-    (get (:registers machine-state) (- address 10))))
+    (get (:stores machine-state) (- address 10))))
 
 (defn input-zero
   [machine-state key _]
@@ -130,13 +132,29 @@
     (throw (ex-info "Value out of range" machine-state)))
   (assoc machine-state :accumulator (n/adjust-places value 14)))
 
-(defn output-register
+(defn output-store
   [machine-state address value]
   (when (>= address 100)
     (throw (ex-info "Register out of range" machine-state)))
   (when (not (#{0M 9M} (quot value 10M)))
     (throw (ex-info "Value out of range" machine-state)))
-  (assoc-in machine-state [:registers (- address 10)] (n/adjust-places value 7)))
+  (assoc-in machine-state [:stores (- address 10)] (n/adjust-places value 7)))
+
+; Clear functions
+
+(defn clear-error
+  [machine-state _]
+  (throw (ex-info "Clearing invalid address" machine-state)))
+
+(defn clear-accumulator
+  [machine-state _]
+  (assoc machine-state :accumulator 0.00000000000000M))
+
+(defn clear-store
+  [machine-state address]
+  (when (>= address 100)
+    (throw (ex-info "Store out of range" machine-state)))
+  (assoc-in machine-state [:stores (- address 10)] 0.0000000M))
 
 ; General read and write
 
@@ -147,14 +165,14 @@
     (1 2 3 4 5 6 7) input-tape
     8               input-last-7-digits-accumultor
     9               input-accumulator
-    input-register))
+    input-store))
 
 (defn read-dst-fn
   [address]
   (case address
     (0 1 2 3 4 5 6 7 8) input-zero
     9                   input-accumulator
-    input-register))
+    input-store))
 
 (defn write-fn
   [address]
@@ -164,7 +182,14 @@
     (2 4)     output-perforator
     (5 6 7 8) output-spare
     9         output-accumulator
-    output-register))
+    output-store))
+
+(defn clear-fn
+  [address]
+  (case address
+    (0 1 2 3 4 5 6 7 8) clear-error
+    9         clear-accumulator
+    clear-store))
 
 (defn read-src-address
   [machine-state address]
@@ -181,10 +206,7 @@
 
 (defn clear-address
   [machine-state address]
-  (->
-    machine-state
-    (assoc :alu-result 0M)
-    (write-address address)))
+  ((clear-fn address) machine-state address))
 
 (defn advance-pc
   [machine-state]

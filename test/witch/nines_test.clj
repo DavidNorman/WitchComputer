@@ -47,90 +47,6 @@
          99.22222M))
   )
 
-(deftest add
-  (is (= (n/add (n/to-nines 1M) (n/to-nines 1M))
-         (n/to-nines 2M)))
-
-  (is (= (n/add (n/to-nines 1.111M) (n/to-nines 1.222M))
-         (n/to-nines 2.333M)))
-
-  (is (= (n/add (n/to-nines -2.0M) (n/to-nines -0.04M))
-         (n/to-nines -2.04M)))
-
-  (is (= (n/add (n/to-nines 2.0M) (n/to-nines -3.00004M))
-         (n/to-nines -1.00004M)))
-
-  (is (= (n/add 01.0000000M 98.9999999M)
-         99.9999999M))
-
-  (is (= (n/add 00.0000000M 99.9999999M)
-         99.9999999M))
-
-  (is (= (n/add 2.00000000000000M (n/to-nines -3.00004M))
-         98.99995990000000M)) ; TODO is this right?
-  )
-
-(deftest subtract
-  (is (= (n/subtract (n/to-nines 2M) (n/to-nines 1M))
-         (n/to-nines 1M)))
-
-  (is (= (n/subtract (n/to-nines 1.222M) (n/to-nines 1.111M))
-         (n/to-nines 0.111M)))
-
-  (is (= (n/subtract (n/to-nines -2.0M) (n/to-nines -0.04M))
-         (n/to-nines -1.96M)))
-
-  (is (= (n/subtract (n/to-nines 2.0M) (n/to-nines 3.00004M))
-         (n/to-nines -1.00004M)))
-
-  (is (= (n/subtract 01.0000000M 01.0000000M)
-         99.9999999M))
-
-  (is (= (n/subtract 00.0000000M 99.9999999M)
-         00.0000000M))
-
-  (is (= (n/subtract 00.0000000M 00.0000000M)
-         99.9999999M))
-
-  (is (= (n/subtract 2.00000000000000M (n/to-nines 3.00004M))
-         98.99995990000000M)) ; TODO is this right?
-  )
-
-(deftest multiply
-  (is (= (n/multiply (n/to-nines 2M) (n/to-nines 1M) 0M)
-         (n/to-nines 2M)))
-
-  (is (= (n/multiply (n/to-nines 1.222M) (n/to-nines 1.111M) 0M)
-         (n/to-nines 1.357642M)))
-
-  (is (= (n/multiply (n/to-nines -2.0M) (n/to-nines -0.04M) 0M)
-         (n/to-nines 0.08M)))
-
-  (is (= (n/multiply (n/to-nines 3.0M) (n/to-nines -3.00004M) 0M)
-         (n/to-nines -9.00012M)))
-
-  (is (= (n/multiply (n/to-nines -2.0M) (n/to-nines 3.00004M) 0M)
-         (n/to-nines -6.00008M)))
-
-  (is (= (n/multiply 00.0000000M 01.0000000M 0M)
-         00.0000000M))
-
-  (is (= (n/multiply 00.0000000M 99.9999999M 0M)
-         00.0000000M))
-
-  (is (= (n/multiply 99.9999999M 99.9999999M 0M)
-         00.0000000M))
-
-  ; TODO add cases where accumulator is non zero to start
-  )
-
-(deftest divide
-
-  ;;TODO remainders, positive zero dividend (and negative zero?)
-
-  (is (= (n/divide 01.0000000M 01.0000000M)
-         01.0000000M))
-  )
 
 (deftest examine-sign
   (is (= (n/positive? (n/to-nines 1M))
@@ -144,35 +60,6 @@
 
   (is (= (n/positive? 99.99999999)
          false))
-  )
-
-(deftest shift
-  (is (= (n/shift (n/to-nines 1M) 1M)
-         (n/to-nines 1M)))
-
-  (is (= (n/shift (n/to-nines -1M) 1M)
-         (n/to-nines -1M)))
-
-  (is (= (n/shift (n/to-nines 1M) 0.1M)
-         (n/to-nines 0.1M)))
-
-  (is (= (n/shift (n/to-nines -1M) 0.1M)
-         (n/to-nines -0.1M)))
-
-  (is (= (n/shift (n/to-nines 1M) 0.0000001M)
-         (n/to-nines 0.0000001M)))
-
-  (is (= (n/shift (n/to-nines -1M) 0.0000001M)
-         (n/to-nines -0.0000001M)))
-
-  (is (= (n/shift (n/to-nines 0.01M) 10M)
-         (n/to-nines 0.1M)))
-
-  (is (= (n/shift (n/to-nines -0.01M) 10M)
-         (n/to-nines -0.1M)))
-
-  (is (= (n/shift 99.98999999999999M 10M)
-         99.89999999999999M))
   )
 
 (deftest negate

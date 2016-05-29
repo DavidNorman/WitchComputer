@@ -8,7 +8,7 @@
 (defn get-registers
   "Utility for pulling a collection of registers"
   [machine-state regs]
-  (map #(get (:registers machine-state) %) regs))
+  (map #(get (:stores machine-state) %) regs))
 
 ; Instructions
 
@@ -37,8 +37,8 @@
          ;; Successful op
          (is (= (->
                   m/initial-machine-state
-                  (assoc-in [:registers 0] (n/to-nines 1.234M))
-                  (assoc-in [:registers 10] (n/to-nines 0.001M))
+                  (assoc-in [:stores 0] (n/to-nines 1.234M))
+                  (assoc-in [:stores 10] (n/to-nines 0.001M))
                   (assoc :tapes [[[nil 1.1020M]]])
                   (assoc :pc 1)
                   (d/step)
@@ -48,7 +48,7 @@
          ; Into accumulator
          (is (= (->
                   m/initial-machine-state
-                  (assoc-in [:registers 0] (n/to-nines 1.234M))
+                  (assoc-in [:stores 0] (n/to-nines 1.234M))
                   (assoc :accumulator 0.0000001111M)
                   (assoc :tapes [[[nil 1.1009M]]])
                   (assoc :pc 1)
@@ -59,7 +59,7 @@
          ; From accumulator
          (is (= (->
                   m/initial-machine-state
-                  (assoc-in [:registers 10] (n/to-nines 1.3333333M))
+                  (assoc-in [:stores 10] (n/to-nines 1.3333333M))
                   (assoc :accumulator 0.0000001111M)
                   (assoc :tapes [[[nil 1.0920M]]])
                   (assoc :pc 1)
@@ -70,8 +70,8 @@
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc-in [:registers 0] (n/to-nines 8.0M))
-                        (assoc-in [:registers 10] (n/to-nines 2.0M))
+                        (assoc-in [:stores 0] (n/to-nines 8.0M))
+                        (assoc-in [:stores 10] (n/to-nines 2.0M))
                         (assoc :tapes [[[nil 1.1020M]]])
                         (assoc :pc 1)
                         (d/step))))
@@ -79,8 +79,8 @@
          (is (thrown? ExceptionInfo
                       (->
                         m/initial-machine-state
-                        (assoc-in [:registers 0] (n/to-nines -8.0M))
-                        (assoc-in [:registers 10] (n/to-nines -3.0M))
+                        (assoc-in [:stores 0] (n/to-nines -8.0M))
+                        (assoc-in [:stores 10] (n/to-nines -3.0M))
                         (assoc :tapes [[[nil 1.1020M]]])
                         (assoc :pc 1)
                         (d/step))))
@@ -110,8 +110,8 @@
          ;; With shift
          (is (= (->
                   m/initial-machine-state
-                  (assoc-in [:registers 0] (n/to-nines 0.1234M))
-                  (assoc-in [:registers 10] (n/to-nines 0.001M))
+                  (assoc-in [:stores 0] (n/to-nines 0.1234M))
+                  (assoc-in [:stores 10] (n/to-nines 0.001M))
                   (assoc :tapes [[[nil 0.8100] [nil 1.1020M]]])
                   (assoc :pc 1)
                   (d/step)
@@ -125,8 +125,8 @@
   ;; Successful op
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 2.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -136,7 +136,7 @@
   ; Into accumulator
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
            (assoc :accumulator 0.0000001111M)
            (assoc :tapes [[[nil 2.1009M]]])
            (assoc :pc 1)
@@ -147,7 +147,7 @@
   ; From accumulator
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 10] (n/to-nines 1.3333333M))
+           (assoc-in [:stores 10] (n/to-nines 1.3333333M))
            (assoc :accumulator 0.0000001111M)
            (assoc :tapes [[[nil 2.0920M]]])
            (assoc :pc 1)
@@ -169,8 +169,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 8.0M))
-                 (assoc-in [:registers 10] (n/to-nines 2.0M))
+                 (assoc-in [:stores 0] (n/to-nines 8.0M))
+                 (assoc-in [:stores 10] (n/to-nines 2.0M))
                  (assoc :tapes [[[nil 2.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -178,8 +178,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines -8.0M))
-                 (assoc-in [:registers 10] (n/to-nines -3.0M))
+                 (assoc-in [:stores 0] (n/to-nines -8.0M))
+                 (assoc-in [:stores 10] (n/to-nines -3.0M))
                  (assoc :tapes [[[nil 2.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -211,8 +211,8 @@
   ;; Successful op
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 3.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -222,7 +222,7 @@
   ; Into accumulator TODO fix this
   #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
            (assoc :accumulator 00.00000011110000M)
            (assoc :tapes [[[nil 3.1009M]]])
            (assoc :pc 1)
@@ -233,7 +233,7 @@
   ; From accumulator TODO fix this (is this right?)
   #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 10] (n/to-nines 1.3333333M))
+           (assoc-in [:stores 10] (n/to-nines 1.3333333M))
            (assoc :accumulator 00.00000011110000M)
            (assoc :tapes [[[nil 3.0920M]]])
            (assoc :pc 1)
@@ -245,8 +245,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 8.0M))
-                 (assoc-in [:registers 10] (n/to-nines -2.0M))
+                 (assoc-in [:stores 0] (n/to-nines 8.0M))
+                 (assoc-in [:stores 10] (n/to-nines -2.0M))
                  (assoc :tapes [[[nil 3.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -254,8 +254,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines -8.0M))
-                 (assoc-in [:registers 10] (n/to-nines 3.0M))
+                 (assoc-in [:stores 0] (n/to-nines -8.0M))
+                 (assoc-in [:stores 10] (n/to-nines 3.0M))
                  (assoc :tapes [[[nil 3.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -285,8 +285,8 @@
   ;; With shift
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 0.1234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 0.1234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 0.8100] [nil 3.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -299,8 +299,8 @@
   ;; Successful op
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 4.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -310,7 +310,7 @@
   ; Into accumulator TODO fix this
   #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
            (assoc :accumulator 0.0000001111M)
            (assoc :tapes [[[nil 4.1009M]]])
            (assoc :pc 1)
@@ -321,7 +321,7 @@
   ; From accumulator TODO fix this, is it right?
   #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 10] (n/to-nines 1.3333333M))
+           (assoc-in [:stores 10] (n/to-nines 1.3333333M))
            (assoc :accumulator 0.0000001111M)
            (assoc :tapes [[[nil 4.0920M]]])
            (assoc :pc 1)
@@ -343,8 +343,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 8.0M))
-                 (assoc-in [:registers 10] (n/to-nines -2.0M))
+                 (assoc-in [:stores 0] (n/to-nines 8.0M))
+                 (assoc-in [:stores 10] (n/to-nines -2.0M))
                  (assoc :tapes [[[nil 4.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -352,8 +352,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines -8.0M))
-                 (assoc-in [:registers 10] (n/to-nines 3.0M))
+                 (assoc-in [:stores 0] (n/to-nines -8.0M))
+                 (assoc-in [:stores 10] (n/to-nines 3.0M))
                  (assoc :tapes [[[nil 4.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -386,8 +386,8 @@
   ; Successful multiply
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -396,8 +396,8 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines -0.0000005M))
-           (assoc-in [:registers 10] (n/to-nines 0.005M))
+           (assoc-in [:stores 0] (n/to-nines -0.0000005M))
+           (assoc-in [:stores 10] (n/to-nines 0.005M))
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -406,8 +406,8 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines -0.0000001M))
-           (assoc-in [:registers 10] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 0] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 10] (n/to-nines -0.0000001M))
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -417,8 +417,8 @@
   ; Receiving address is cleared, sending address isn't cleared
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines -0.0000001M))
-           (assoc-in [:registers 10] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 0] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 10] (n/to-nines -0.0000001M))
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -428,8 +428,8 @@
   ; A non-empty accumulator has the value added
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :accumulator 1.5M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
@@ -441,8 +441,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines -4M))
-                 (assoc-in [:registers 10] (n/to-nines -3M))
+                 (assoc-in [:stores 0] (n/to-nines -4M))
+                 (assoc-in [:stores 10] (n/to-nines -3M))
                  (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -450,8 +450,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 4M))
-                 (assoc-in [:registers 10] (n/to-nines 3M))
+                 (assoc-in [:stores 0] (n/to-nines 4M))
+                 (assoc-in [:stores 10] (n/to-nines 3M))
                  (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -476,7 +476,7 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] 2.0M)
+           (assoc-in [:stores 0] 2.0M)
            (assoc :accumulator 6.0M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
@@ -486,7 +486,7 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] 2.0M)
+           (assoc-in [:stores 0] 2.0M)
            (assoc :accumulator 7.0M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
@@ -496,7 +496,7 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] -2.0M)
+           (assoc-in [:stores 0] -2.0M)
            (assoc :accumulator 7.0M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
@@ -506,7 +506,7 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] 2.0M)
+           (assoc-in [:stores 0] 2.0M)
            (assoc :accumulator -7.0M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
@@ -523,8 +523,8 @@
   ; Transfer positive number
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -534,8 +534,8 @@
   ; Transfer negative number ; TODO
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 1.234M))
-           (assoc-in [:registers 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] (n/to-nines 1.234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
            (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -721,7 +721,7 @@
   ; Positive true
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 2.1M))
+           (assoc-in [:stores 0] (n/to-nines 2.1M))
            (assoc :tapes [[[nil 0.1110M]]])
            (assoc :pc 1)
            (d/step)
@@ -732,7 +732,7 @@
   ; Negative true
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines -2.1M))
+           (assoc-in [:stores 0] (n/to-nines -2.1M))
            (assoc :tapes [[[nil 0.1210M]]])
            (assoc :pc 1)
            (d/step)
@@ -742,7 +742,7 @@
   ; Positive false
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines -2.1M))
+           (assoc-in [:stores 0] (n/to-nines -2.1M))
            (assoc :tapes [[[nil 0.1110M]]])
            (assoc :pc 1)
            (d/step)
@@ -753,7 +753,7 @@
   ; Negative false
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:registers 0] (n/to-nines 2.1M))
+           (assoc-in [:stores 0] (n/to-nines 2.1M))
            (assoc :tapes [[[nil 0.1210M]]])
            (assoc :pc 1)
            (d/step)
@@ -764,7 +764,7 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 2.1M))
+                 (assoc-in [:stores 0] (n/to-nines 2.1M))
                  (assoc :tapes [[[nil 0.1010M]]])
                  (assoc :pc 1)
                  (d/step)
@@ -775,7 +775,7 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:registers 0] (n/to-nines 2.1M))
+                 (assoc-in [:stores 0] (n/to-nines 2.1M))
                  (assoc :tapes [[[nil 0.1310M]]])
                  (assoc :pc 1)
                  (d/step)

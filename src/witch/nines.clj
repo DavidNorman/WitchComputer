@@ -51,50 +51,8 @@
   [a]
   (- 100M a (.movePointLeft 1.0M (.scale a))))
 
-(defn add
-  "Add together 2 nines complement numbers"
-  [a b]
-  (carry-over (+ a b) 2 (.scale a)))
-
-(defn subtract
-  [a b]
-  (carry-over (+ a (negate b)) 2 (.scale a)))
-
-(defn sign-extend
-  "Sign extend a representation of a store to
-  prepare for multiplication"
-  [x]
-  (let [sign (bigint (quot x 10M))]
-    (+
-      (bigint (.movePointRight x 10))
-      (* sign 111))))
-
-(defn multiply
-  [src dst acc]
-  (let [isrc (sign-extend src)
-        idst (sign-extend dst)]
-    (.movePointLeft (bigdec (* isrc idst)) 20)))
-
-(defn divide
-  [a b]
-  (to-nines
-    (with-precision 14
-      (/
-        (from-nines a)
-        (from-nines b)))))
-
 (defn positive?
   [a]
   (< a 50M))
 
 (def negative? (comp not positive?))
-
-(defn shift
-  [a factor]
-  (->
-    a
-    (+ (* (quot a 10M) 111111100M))
-    (+ (.movePointLeft (quot a 10M) (inc (.scale a))))
-    (* factor)
-    (adjust-places (.scale a))))
-
