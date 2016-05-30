@@ -37,6 +37,11 @@
     (.setScale places java.math.RoundingMode/DOWN)
     (mod 100M)))
 
+(defn sign-extend
+  "Extend sign bit out by 7 more digits"
+  [x]
+  (+ x (* (quot x 10M) 111111100M)))
+
 (defn carry-over
   "Add the nines complement overflow back into the result"
   [a m n]
@@ -49,7 +54,7 @@
 (defn negate
   "Find the nines complement negative of a number"
   [a]
-  (- 100M a (.movePointLeft 1.0M (.scale a))))
+  (- 100M a (.movePointLeft 1M (.scale a))))
 
 (defn positive?
   [a]

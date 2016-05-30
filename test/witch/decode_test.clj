@@ -32,7 +32,7 @@
 
          )
 
-#_(deftest add
+(deftest add
 
          ;; Successful op
          (is (= (->
@@ -66,6 +66,7 @@
                   (d/step)
                   (get-registers [10]))
                 [1.3333334M]))
+         
          ;; Overflow and underflow
          (is (thrown? ExceptionInfo
                       (->

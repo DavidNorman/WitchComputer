@@ -49,11 +49,31 @@
 
 ; Transfer unit
 
+(defn transfer-shift
+  "Perform the shift part of the transfer unit"
+  [x shift]
+  (->
+    x
+    (.movePointRight shift)
+    (mod 100.0M)))
+
+(defn transfer-complement
+  "Perform the complement part of the transfer unit"
+  [x comp]
+  (if comp (n/negate x) x))
+
 (defn transfer
   "Perform the transfer (and transformation) of the source value.  The
    value is shifted by the shift amount, and complemented if required."
   [machine-state]
-  machine-state)
+  (assoc machine-state
+    :transfer-output
+    (->
+      (:sending-value machine-state)
+      (n/sign-extend)
+      (transfer-shift (:transfer-shift machine-state))
+      (+ 0.00000000000000M)
+      (transfer-complement (:transfer-complement machine-state)))))
 
 ; Special input sources
 

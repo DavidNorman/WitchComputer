@@ -1,5 +1,6 @@
 (ns witch.machine-test
   (:require [clojure.test :refer :all]
+            [witch.test-helper :as h]
             [witch.machine :as m])
   (:import (clojure.lang ExceptionInfo)))
 
@@ -242,6 +243,100 @@
   )
 
 (deftest transfer
+
+  ; unchanged
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-shift 0)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.20000000000000M 14]))
+
+  ; shift x10
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-shift 1)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [2.00000000000000M 14]))
+
+  ; shift x0.1
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-shift -1)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.02000000000000M 14]))
+
+  ; shift x0.0000001
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 2.0000000M)
+             (assoc :transfer-shift -7)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.00000020000000M 14]))
+
+  ; shift x0.0000001
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.0000002M)
+             (assoc :transfer-shift -7)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.00000000000002M 14]))
+
+  ; complement
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-complement true)
+             (assoc :transfer-shift 0)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [99.79999999999999M 14]))
+
+  ; complement and shift x10
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-complement true)
+             (assoc :transfer-shift 1)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [97.99999999999999M 14]))
+
+  ; complement and shift X0.1
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-complement true)
+             (assoc :transfer-shift -1)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [99.97999999999999M 14]))
+
+  ; complement and shift x0.0000001
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.0000001M)
+             (assoc :transfer-complement true)
+             (assoc :transfer-shift -7)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [99.99999999999998M 14]))
 
   )
 
