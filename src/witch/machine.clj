@@ -102,7 +102,7 @@
       (.movePointRight 7)
       (rem 1M)
       (.movePointRight 1)
-      (+ (* 10M (quot (:accumulator machine-state) 10M)))
+      (+ (* 10M (n/sign (:accumulator machine-state))))
       (.setScale 7))))
 
 (defn input-accumulator
