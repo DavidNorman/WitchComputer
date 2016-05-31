@@ -53,10 +53,13 @@
 (defn transfer-shift
   "Perform the shift part of the transfer unit"
   [x shift]
-  (->
-    x
-    (.movePointRight shift)
-    (mod 100.0M)))
+  (let [sign (n/sign x)]
+    (->
+      x
+      (n/sign-extend)
+      (.movePointRight shift)
+      (mod 10.0M)
+      (+ (* sign 10M)))))
 
 (defn transfer-complement
   "Perform the complement part of the transfer unit"
@@ -71,7 +74,6 @@
     :transfer-output
     (->
       (:sending-value machine-state)
-      (n/sign-extend)
       (transfer-shift (:transfer-shift machine-state))
       (+ 0.00000000000000M)
       (transfer-complement (:transfer-complement machine-state)))))

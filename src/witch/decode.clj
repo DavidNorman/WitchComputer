@@ -92,6 +92,26 @@
     (m/write-address b)
     (m/advance-pc)))
 
+(defn exec-multiply-step
+  "One stage of the long multiplication.  In each stage
+  the multiplicand is added (or subtracted) from the accumulator
+  N times, where N is the units digit of the multiplier. The shift
+  is set to the step number.  Following this, the multiplier is
+  shifted one digit to the left."
+  [machine-state step]
+
+  ; Set transfer complement depending on the sign of the 'register'
+  ; Set transfer shift = loop counter
+  ; Set clear source to false
+  ; Perform transfer of source to accumulator
+  ; Set transfer complement to false
+  ; Set transfer shift to +1
+  ; Set clear source to true
+  ; Perform transfer from register to register
+
+  machine-state
+  )
+
 (defn exec-multiply
   "Perform long multiplication on 2 values into the accumulator.
 
@@ -103,21 +123,10 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  ; Loop aound (0 -> -7)
-
-  ; Set transfer complement depending on the sign of the 'register'
-  ; Set transfer shift = loop counter
-  ; Set clear source to false
-  ; Perform transfer of source to accumulator
-  ; Set transfer complement to false
-  ; Set transfer shift to +1
-  ; Set clear source to true
-  ; Perform transfer from register to register
-
-  (->
-    machine-state
-    (m/read-sending-address a)
-    (m/advance-pc)))
+  (as->
+    machine-state $
+    (reduce exec-multiply-step $ (range 7))
+    (m/advance-pc $)))
 
 ; todo remainder in accumulator
 (defn exec-divide

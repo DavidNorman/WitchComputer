@@ -270,6 +270,16 @@
              )
          [2.00000000000000M 14]))
 
+  ; shift x10
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 98.2999999M)
+             (assoc :transfer-shift 1)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [92.99999900000000M 14]))
+
   ; shift x0.1
   (is (= (-> m/initial-machine-state
              (assoc :sending-value 0.2000000M)
