@@ -588,7 +588,7 @@
            (get-registers [0 10]))
          [1.2340000M 1.2350000M]))
 
-  ; Transfer negative number ; TODO
+  ; Transfer negative number
   (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 98.7659999M)
