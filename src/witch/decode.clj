@@ -92,25 +92,41 @@
     (m/write-address b)
     (m/advance-pc)))
 
+(defn exec-multiply-summation
+  "Apply a summation operation into the accumulator multiple times"
+  [machine-state a n]
+  (reduce (fn [machine-state _]
+            (->
+              machine-state
+              (m/read-sending-address a)
+              (m/transfer)
+              (m/write-address 9)))
+          machine-state
+          (range n)))
+
 (defn exec-multiply-step
   "One stage of the long multiplication.  In each stage
   the multiplicand is added (or subtracted) from the accumulator
   N times, where N is the units digit of the multiplier. The shift
   is set to the step number.  Following this, the multiplier is
   shifted one digit to the left."
-  [machine-state step]
+  [a b machine-state step]
 
-  ; Set transfer complement depending on the sign of the 'register'
-  ; Set transfer shift = loop counter
-  ; Set clear source to false
-  ; Perform transfer of source to accumulator
-  ; Set transfer complement to false
-  ; Set transfer shift to +1
-  ; Set clear source to true
-  ; Perform transfer from register to register
-
-  machine-state
-  )
+  (let [reg (m/read-destination-address machine-state b)
+        neg (n/negative? reg)
+        units (n/units-digit reg)]
+    (->
+      machine-state
+      (assoc :sending-clear false)
+      (assoc :transfer-complement neg)
+      (assoc :transfer-shift (- step))
+      (exec-multiply-summation a units)
+      (assoc :sending-clear true)
+      (assoc :transfer-complement false)
+      (assoc :transfer-shift 1M)
+      (m/read-sending-address b)
+      (m/transfer)
+      (m/write-address b))))
 
 (defn exec-multiply
   "Perform long multiplication on 2 values into the accumulator.
@@ -124,9 +140,9 @@
     (throw (ex-info "Invalid stores" machine-state)))
 
   (as->
-    machine-state $
-    (reduce exec-multiply-step $ (range 7))
-    (m/advance-pc $)))
+      machine-state $
+      (reduce (partial exec-multiply-step a b) $ (range 7))
+      (m/advance-pc $)))
 
 ; todo remainder in accumulator
 (defn exec-divide

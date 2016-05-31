@@ -171,3 +171,6 @@
   (is (= (n/negative? 90.9999999M))
       true)
   )
+
+; TODO this
+(deftest units-digit)

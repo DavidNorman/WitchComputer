@@ -67,3 +67,8 @@
   (< a 50M))
 
 (def negative? (comp not positive?))
+
+(defn units-digit
+  "Get the units digit of a nines complement number"
+  [x]
+  (mod (quot x 1M) 10M))

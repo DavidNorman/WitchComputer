@@ -211,6 +211,13 @@
   [machine-state address]
   ((write-fn address) machine-state address (:transfer-output machine-state)))
 
+(defn read-destination-address
+  "Return the value of the destination address.  This is used during multiplication
+  for getting the value of the 'register'."
+  [machine-state address]
+  (get (:stores machine-state) (- address 10)))
+
+
 (defn advance-pc
   [machine-state]
   (let [pc (:pc machine-state)]

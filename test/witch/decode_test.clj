@@ -438,33 +438,33 @@
                  (d/step))))
   )
 
-#_(deftest multiply
+(deftest multiply
 
   ; Successful multiply
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines 1.234M))
-           (assoc-in [:stores 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] 1.2340000M)
+           (assoc-in [:stores 10] 0.0010000M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         0.001234M))
+         0.00123400000000M))
 
-  (is (= (->
+  #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines -0.0000005M))
-           (assoc-in [:stores 10] (n/to-nines 0.005M))
+           (assoc-in [:stores 0] 99.9999994M)
+           (assoc-in [:stores 10] 0.0050000M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         -0.0000000025M))
+         99.99999999749999M))
 
-  (is (= (->
+  #_(is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines -0.0000001M))
-           (assoc-in [:stores 10] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 10] 99.999998M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
@@ -474,32 +474,43 @@
   ; Receiving address is cleared, sending address isn't cleared
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines -0.0000001M))
-           (assoc-in [:stores 10] (n/to-nines -0.0000001M))
+           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 10] 1.0000000M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [-0.0000001M 0M]))
+         [99.999998M 0.0000000M]))
+
+  ; Receiving address is cleared, sending address isn't cleared ; TODO is this right?
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 10] 99.999998M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [0 10]))
+         [99.999998M 90.0000000M]))
 
   ; A non-empty accumulator has the value added
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines 1.234M))
-           (assoc-in [:stores 10] (n/to-nines 0.001M))
-           (assoc :accumulator 1.5M)
+           (assoc-in [:stores 0] 1.2340000M)
+           (assoc-in [:stores 10] 0.0010000M)
+           (assoc :accumulator 1.50000000000000M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         1.501234M))
+         1.50123400000000M))
 
   ; Overflow
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:stores 0] (n/to-nines -4M))
-                 (assoc-in [:stores 10] (n/to-nines -3M))
+                 (assoc-in [:stores 0] 95.9999999M)
+                 (assoc-in [:stores 10] 96.9999999M)
                  (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
@@ -507,8 +518,8 @@
   (is (thrown? ExceptionInfo
                (->
                  m/initial-machine-state
-                 (assoc-in [:stores 0] (n/to-nines 4M))
-                 (assoc-in [:stores 10] (n/to-nines 3M))
+                 (assoc-in [:stores 0] 4.0000000M)
+                 (assoc-in [:stores 10] 3.0000000M)
                  (assoc :tapes [[[nil 5.1020M]]])
                  (assoc :pc 1)
                  (d/step))))
