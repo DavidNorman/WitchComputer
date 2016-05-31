@@ -3,11 +3,9 @@
 The Harwell Dekatron computer, aka the WITCH computer is at the UK National Computer Museum.
 More information about it can be found at http://www.computerconservationsociety.org/witch.htm.
 
-In developing this simulator, I have been particularly influenced by the users manual at
-http://www.computerconservationsociety.org/Wolv-Manual.pdf, the table or order codes
-at http://www.computerconservationsociety.org/witch7.htm, an article describing the arithmetic
-units at http://www.computerconservationsociety.org/witch5.htm, and the example program
-at http://www.computerconservationsociety.org/witch4.htm.
+In developing this simulator, I have been particularly influenced by the users manual, the table
+of order codes, the Electronic Engineering article describing the arithmetic units, and the
+example programs.
 
 I also corresponded with Delwyn Holroyd, and would not have been able to figure out the
 details of some of the design without his helpful replies.
