@@ -1,6 +1,5 @@
 (ns witch.decode
   (:require [witch.machine :as m]
-            [witch.alu :as a]
             [clojure.pprint :as pp]
             [witch.nines :as n]))
 
@@ -121,11 +120,13 @@
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (->
-    machine-state
-    (m/read-sending-address a)
-    (assoc :transfer-shift 1)
-    (m/advance-pc)))
+  (as-> machine-state $
+    (m/read-sending-address $ a)
+    (assoc $ :transfer-complement (n/negative? (:sending-value $)))
+    (m/transfer $)
+    (m/write-address $ b)
+    (assoc $ :transfer-shift 1)
+    (m/advance-pc $)))
 
 ; Control instruction decodes
 

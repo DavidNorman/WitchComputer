@@ -386,28 +386,6 @@
            (get-registers [0 10]))
          [(n/to-nines 0M) (n/to-nines -1.233M)]))
 
-  ; Into accumulator TODO fix this
-  #_(is (= (->
-           m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines 1.234M))
-           (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[[nil 4.1009M]]])
-           (assoc :pc 1)
-           (d/step)
-           :accumulator)
-         -1.2339998889M))
-
-  ; From accumulator TODO fix this, is it right?
-  #_(is (= (->
-           m/initial-machine-state
-           (assoc-in [:stores 10] (n/to-nines 1.3333333M))
-           (assoc :accumulator 0.0000001111M)
-           (assoc :tapes [[[nil 4.0920M]]])
-           (assoc :pc 1)
-           (d/step)
-           (get-registers [10]))
-         [(n/to-nines 1.3333331M)]))
-
   ;; Clear accumulator
   (is (= (->
            m/initial-machine-state
@@ -597,29 +575,29 @@
   ;TODO positive zero dividend is an error
   )
 
-#_(deftest transfer-modulus
+(deftest transfer-modulus
 
   ; Transfer positive number
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines 1.234M))
-           (assoc-in [:stores 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] 1.2340000M)
+           (assoc-in [:stores 10] 0.0010000M)
            (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [(n/to-nines 1.234M) (n/to-nines 1.235M)]))
+         [1.2340000M 1.2350000M]))
 
   ; Transfer negative number ; TODO
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] (n/to-nines 1.234M))
-           (assoc-in [:stores 10] (n/to-nines 0.001M))
+           (assoc-in [:stores 0] 98.7659999M)
+           (assoc-in [:stores 10] 0.0010000M)
            (assoc :tapes [[[nil 7.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [(n/to-nines 1.234M) (n/to-nines 1.235M)]))
+         [98.7659999M 1.2350000M]))
   )
 
 (deftest set-print-layout
