@@ -46,10 +46,34 @@ lines which start ';'.  A line can contain one of:
 
 | Syntax    | Meaning                                                  | Example  |
 |-----------|----------------------------------------------------------|----------|
+| ==tape    | The beginning of the next tape                           | ==tape   |
 | #n        | A block marker                                           | #1       |
 | NNNNN     | A five digit positive number, typically used for orders  | 21020    |
 | +NNNNNNNN | An eight digit positive number. '+' is mandatory         | +1234567 |
 | -NNNNNNNN | An eight digit negative number. '-' is mandatory         | -1234567 |
+
+The first non-comment line must be a '==tape' marker.  The contents of tape 1 follows.
+When another '==tape' marker is seen, then tape 1 is finished, and tape 2 follows the
+marker.  As in the real machine, tape 1 should contain a block 1 marker, because the
+machine will search for it an execute from that point on booting.
+
+For example:
+  ; This is an example
+
+  ==tape
+
+  #1
+
+  ; Search for block 2 on tape 2 and jump to it
+  03202
+  02102
+
+  ==tape
+
+  #2
+
+  ; Stop the machine
+  00100
 
 There is an implicit decimal point after the first digit of any number.
 
