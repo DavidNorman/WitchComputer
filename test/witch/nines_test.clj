@@ -107,8 +107,16 @@
          0.00001M))
   )
 
-; TODO this
-(deftest sign-extend)
+(deftest sign-extend
+  (is (= (h/value-and-scale (n/sign-extend 0.0000000M))
+         [0.0000000M 7]))
+
+  (is (= (h/value-and-scale (n/sign-extend 90.0000000M))
+         [999999990.0000000M 7]))
+
+  (is (= (h/value-and-scale (n/sign-extend 99.9999999M))
+         [999999999.9999999M 7]))
+  )
 
 (deftest sign
   (is (= (h/value-and-scale (n/sign 99.99999999999998M))
@@ -123,4 +131,43 @@
   (is (= (h/value-and-scale (n/sign 91.1111111M))
          [9M 0]))
 
+  )
+(deftest positive
+  (is (= (n/positive? 0.0000000M))
+      true)
+
+  (is (= (n/positive? 1.0000000M))
+      true)
+
+  (is (= (n/positive? 0.0000001M))
+      true)
+
+  (is (= (n/positive? 90.0000001M))
+      false)
+
+  (is (= (n/positive? 99.0000001M))
+      false)
+
+  (is (= (n/positive? 90.9999999M))
+      false)
+  )
+
+(deftest negative
+  (is (= (n/negative? 0.0000000M))
+      false)
+
+  (is (= (n/negative? 1.0000000M))
+      false)
+
+  (is (= (n/negative? 0.0000001M))
+      false)
+
+  (is (= (n/negative? 90.0000001M))
+      true)
+
+  (is (= (n/negative? 99.0000001M))
+      true)
+
+  (is (= (n/negative? 90.9999999M))
+      true)
   )
