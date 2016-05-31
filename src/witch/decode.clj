@@ -41,6 +41,7 @@
 
   (->
     machine-state
+    (assoc :sending-clear false)
     (assoc :transfer-complement false)
     (m/read-sending-address a)
     (m/transfer)
@@ -55,11 +56,11 @@
   
   (->
     machine-state
+    (assoc :sending-clear true)
     (assoc :transfer-complement false)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
-    (m/clear-address a)
     (m/advance-pc)))
 
 (defn exec-subtract
@@ -69,6 +70,7 @@
 
   (->
     machine-state
+    (assoc :sending-clear false)
     (assoc :transfer-complement true)
     (m/read-sending-address a)
     (m/transfer)
@@ -83,19 +85,34 @@
 
   (->
     machine-state
+    (assoc :sending-clear true)
     (assoc :transfer-complement true)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
-    (m/clear-address a)
     (m/advance-pc)))
 
 (defn exec-multiply
+  "Perform long multiplication on 2 values into the accumulator.
+
+  See http://www.computerconservationsociety.org/witch5.htm for a fairly
+  comprehensive description of the multiplication process."
   [machine-state a b]
   (when (or (invalid-stores a b)
             (< a 10)
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
+
+  ; Loop aound (0 -> -7)
+
+  ; Set transfer complement depending on the sign of the 'register'
+  ; Set transfer shift = loop counter
+  ; Set clear source to false
+  ; Perform transfer of source to accumulator
+  ; Set transfer complement to false
+  ; Set transfer shift to +1
+  ; Set clear source to true
+  ; Perform transfer from register to register
 
   (->
     machine-state
@@ -121,12 +138,13 @@
     (throw (ex-info "Invalid stores" machine-state)))
 
   (as-> machine-state $
-    (m/read-sending-address $ a)
-    (assoc $ :transfer-complement (n/negative? (:sending-value $)))
-    (m/transfer $)
-    (m/write-address $ b)
-    (assoc $ :transfer-shift 1)
-    (m/advance-pc $)))
+        (assoc $ :sending-clear false)
+        (m/read-sending-address $ a)
+        (assoc $ :transfer-complement (n/negative? (:sending-value $)))
+        (m/transfer $)
+        (m/write-address $ b)
+        (assoc $ :transfer-shift 1)
+        (m/advance-pc $)))
 
 ; Control instruction decodes
 

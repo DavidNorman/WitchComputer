@@ -6,6 +6,7 @@
 (def initial-machine-state
   {:stores              (into [] (repeat 90 0.0000000M))
    :accumulator         0.00000000000000M
+   :sending-clear       false
    :transfer-shift      0M
    :transfer-complement false
    :transfer-output     0.00000000000000M
@@ -75,28 +76,38 @@
       (+ 0.00000000000000M)
       (transfer-complement (:transfer-complement machine-state)))))
 
+; Cleared value of store/accumulator
+
+(defn- clear
+  "Produce a cleared or non-cleared result depending on the state
+  of the clear controls"
+  [machine-state]
+  (*
+    (:sending-value machine-state)
+    (if (:sending-clear machine-state) 0M 1M)))
+
 ; Special input sources
 
 (defn input-roundoff
-  [machine-state key _]
-  (assoc machine-state
-    key
-    (rand-int 2)))
+  [machine-state _]
+  (->
+    machine-state
+    (assoc :sending-value (rand-int 2))))
 
 (defn input-tape
-  [machine-state key address]
+  [machine-state address]
   (when (> address (count (:tapes machine-state)))
     (throw (ex-info "Tape not available" machine-state)))
 
   (as->
     machine-state $
-    (assoc $ key (read-tape $ address))
+    (assoc $ :sending-value (read-tape $ address))
     (update-in $ [:tapes (dec address)] rotate)))
 
 (defn input-last-7-digits-accumultor
-  [machine-state key _]
+  [machine-state _]
   (assoc machine-state
-    key
+    :sending-value
     (->
       (:accumulator machine-state)
       (.movePointRight 7)
@@ -106,16 +117,17 @@
       (.setScale 7))))
 
 (defn input-accumulator
-  [machine-state key _]
-  (assoc machine-state
-    key
-    (:accumulator machine-state)))
+  [machine-state _]
+  (as-> machine-state $
+        (assoc $ :sending-value (:accumulator $))
+        (assoc $ :accumulator (clear $))))
 
 (defn input-store
-  [machine-state key address]
-  (assoc machine-state
-    key
-    (get (:stores machine-state) (- address 10))))
+  [machine-state address]
+  (let [a (- address 10)]
+    (as-> machine-state $
+          (assoc $ :sending-value (get (:stores $) a))
+          (assoc-in $ [:stores a] (clear $)))))
 
 ; Special write destinations
 
@@ -168,22 +180,6 @@
       (throw (ex-info "Value out of range" machine-state)))
     (assoc-in machine-state [:stores a] new-value)))
 
-; Clear functions
-
-(defn clear-error
-  [machine-state _]
-  (throw (ex-info "Clearing invalid address" machine-state)))
-
-(defn clear-accumulator
-  [machine-state _]
-  (assoc machine-state :accumulator 0.00000000000000M))
-
-(defn clear-store
-  [machine-state address]
-  (when (>= address 100)
-    (throw (ex-info "Store out of range" machine-state)))
-  (assoc-in machine-state [:stores (- address 10)] 0.0000000M))
-
 ; General read and write
 
 (defn read-src-fn
@@ -205,24 +201,13 @@
     9         output-accumulator
     output-store))
 
-(defn clear-fn
-  [address]
-  (case address
-    (0 1 2 3 4 5 6 7 8) clear-error
-    9         clear-accumulator
-    clear-store))
-
 (defn read-sending-address
   [machine-state address]
-  ((read-src-fn address) machine-state :sending-value address))
+  ((read-src-fn address) machine-state address))
 
 (defn write-address
   [machine-state address]
   ((write-fn address) machine-state address (:transfer-output machine-state)))
-
-(defn clear-address
-  [machine-state address]
-  ((clear-fn address) machine-state address))
 
 (defn advance-pc
   [machine-state]

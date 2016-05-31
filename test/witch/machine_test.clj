@@ -179,34 +179,37 @@
 
 (deftest clear
 
-  ;typical
+  ; not clearing source value
   (is (= (-> m/initial-machine-state
-             (assoc-in [:stores 0] 2.0000000M)
-             (m/clear-address 10)
-             :stores
-             (get 0))
-         0.0000000M))
+             (assoc :sending-value 99.8999999M)
+             (assoc :sending-clear true)
+             (#'witch.machine/clear)
+             h/value-and-scale)
+         [0.0000000M 7]))
 
-  ; another
+  ; clearing source value
   (is (= (-> m/initial-machine-state
-             (assoc-in [:stores 0] 2.0000000M)
-             (m/clear-address 20)
-             :stores
-             (get 10))
-         0.0000000M))
+             (assoc :sending-value 99.8999999M)
+             (assoc :sending-clear true)
+             (#'witch.machine/clear)
+             h/value-and-scale)
+         [0.0000000M 7]))
 
-  ; accumulator
+  ; accumulator not clearing
   (is (= (-> m/initial-machine-state
-             (assoc :accumulator 2.0000000M)
-             (m/clear-address 9)
-             :accumulator)
-         0.00000000000000M))
+             (assoc :sending-value 1.00000000000000M)
+             (assoc :sending-clear false)
+             (#'witch.machine/clear)
+             h/value-and-scale)
+         [1.00000000000000M 14]))
 
-  ; register out of range
-  (is (thrown? ExceptionInfo
-               (-> m/initial-machine-state
-                   (assoc :transfer-output 0.0000000M)
-                   (m/clear-address 100))))
+  ; accumulator clearing
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 1.00000000000000M)
+             (assoc :sending-clear true)
+             (#'witch.machine/clear)
+             h/value-and-scale)
+         [0.00000000000000M 14]))
   )
 
 ; Operations
@@ -226,14 +229,14 @@
   ; Returns the correct value
   (is (= (-> m/initial-machine-state
              (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-             (m/input-tape :sending-value 1)
+             (m/input-tape 1)
              :sending-value)
          1M))
 
   ; Moves the tape forward
   (is (= (-> m/initial-machine-state
              (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-             (m/input-tape :sending-value 1)
+             (m/input-tape 1)
              (get-in [:tapes 0]))
          [[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 1M]]))
 
@@ -241,7 +244,7 @@
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
                    (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
-                   (m/input-tape :sending-value 2))))
+                   (m/input-tape 2))))
 
   )
 
