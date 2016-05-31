@@ -58,22 +58,23 @@ marker.  As in the real machine, tape 1 should contain a block 1 marker, because
 machine will search for it an execute from that point on booting.
 
 For example:
-  ; This is an example
+```
+; This is an example
 
-  ==tape
+==tape
 
-  #1
+#1
 
-  ; Search for block 2 on tape 2 and jump to it
-  03202
-  02102
+; Search for block 2 on tape 2 and jump to it
+03202
+02102
 
-  ==tape
+==tape
+#2
 
-  #2
-
-  ; Stop the machine
-  00100
+; Stop the machine
+00100
+```
 
 There is an implicit decimal point after the first digit of any number.
 
