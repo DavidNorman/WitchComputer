@@ -103,3 +103,18 @@
 
 ; TODO this
 (deftest sign-extend)
+
+(deftest sign
+  (is (= (h/value-and-scale (n/sign 99.99999999999998M))
+         [9M 0]))
+
+  (is (= (h/value-and-scale (n/sign 00.00000000000000M))
+         [0M 0]))
+
+  (is (= (h/value-and-scale (n/sign 09.9999999M))
+         [0M 0]))
+
+  (is (= (h/value-and-scale (n/sign 91.1111111M))
+         [9M 0]))
+
+  )

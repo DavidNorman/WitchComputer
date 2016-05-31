@@ -66,7 +66,7 @@
                   (d/step)
                   (get-registers [10]))
                 [1.3333334M]))
-         
+
          ;; Overflow and underflow
          (is (thrown? ExceptionInfo
                       (->
@@ -584,7 +584,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         10M))
+         1M))
 
   (is (= (->
            m/initial-machine-state
@@ -592,7 +592,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         1M))
+         0M))
 
   (is (= (->
            m/initial-machine-state
@@ -600,7 +600,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.1M))
+         -1M))
 
   (is (= (->
            m/initial-machine-state
@@ -608,7 +608,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.01M))
+         -2M))
 
   (is (= (->
            m/initial-machine-state
@@ -616,7 +616,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.001M))
+         -3M))
 
   (is (= (->
            m/initial-machine-state
@@ -624,7 +624,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.0001M))
+         -4M))
 
   (is (= (->
            m/initial-machine-state
@@ -632,7 +632,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.00001M))
+         -5M))
 
   (is (= (->
            m/initial-machine-state
@@ -640,7 +640,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.000001M))
+         -6M))
 
   (is (= (->
            m/initial-machine-state
@@ -648,7 +648,7 @@
            (assoc :pc 1)
            (d/step)
            :transfer-shift)
-         0.0000001M))
+         -7M))
   )
 
 (deftest search-tape

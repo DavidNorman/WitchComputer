@@ -37,10 +37,15 @@
     (.setScale places java.math.RoundingMode/DOWN)
     (mod 100M)))
 
+(defn sign
+  "Return the sign digit"
+  [x]
+  (.setScale (quot x 10M) 0))
+
 (defn sign-extend
   "Extend sign bit out by 7 more digits"
   [x]
-  (+ x (* (quot x 10M) 111111100M)))
+  (+ x (* (sign x) 111111100M)))
 
 (defn carry-over
   "Add the nines complement overflow back into the result"

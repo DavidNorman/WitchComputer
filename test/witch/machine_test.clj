@@ -9,7 +9,7 @@
 (deftest initial-state
 
   (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0.0000000M))))
-  (is (= (:transfer-shift m/initial-machine-state) 1M))
+  (is (= (:transfer-shift m/initial-machine-state) 0M))
   (is (= (:transfer-complement m/initial-machine-state) false))
   (is (= (:finished m/initial-machine-state) false))
   )
@@ -75,19 +75,19 @@
   ; register out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output 0M)
+                   (assoc :transfer-output 0.0000000M)
                    (m/write-address 100))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output 11M)
+                   (assoc :transfer-output 10.0000000M)
                    (m/write-address 10))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output -10M)
+                   (assoc :transfer-output 89.9999999M)
                    (m/write-address 10))))
   )
 
@@ -128,14 +128,14 @@
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output 10M)
-                   (m/write-address 10))))
+                   (assoc :transfer-output 10.00000000000000M)
+                   (m/write-address 9))))
 
   ; number out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output -10M)
-                   (m/write-address 10))))
+                   (assoc :transfer-output 89.99999999999999M)
+                   (m/write-address 9))))
   )
 
 ; Reading from stores / special addresses
@@ -156,22 +156,25 @@
   (is (= (-> m/initial-machine-state
              (assoc :accumulator 1.0100000M)
              (m/read-sending-address 9)
-             :sending-value)
-         1.0100000M))
+             :sending-value
+             h/value-and-scale)
+         [1.0100000M 7]))
 
   ; typical read of source value (top 8 digits)
   (is (= (-> m/initial-machine-state
              (assoc :accumulator 0.12345678912345M)
              (m/read-sending-address 8)
-             :sending-value)
-         8.912345M))
+             :sending-value
+             h/value-and-scale)
+         [8.912345M 7]))
 
   ; typical read of source value (top 8 digits, negative)
   (is (= (-> m/initial-machine-state
-             (assoc :accumulator -0.12345678912345M)
+             (assoc :accumulator 99.12345678901234M)
              (m/read-sending-address 8)
-             :sending-value)
-         -8.912345M))
+             :sending-value
+             h/value-and-scale)
+         [98.9012340M 7]))
   )
 
 (deftest clear
@@ -202,7 +205,7 @@
   ; register out of range
   (is (thrown? ExceptionInfo
                (-> m/initial-machine-state
-                   (assoc :transfer-output 0M)
+                   (assoc :transfer-output 0.0000000M)
                    (m/clear-address 100))))
   )
 

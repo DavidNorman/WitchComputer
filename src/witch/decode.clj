@@ -6,7 +6,7 @@
 
 ; Values to multiply by when performing shifting
 (def shift-values
-  [0M 10M, 1M, 0.1M, 0.01M, 0.001M, 0.0001M, 0.00001M, 0.000001M, 0.0000001M])
+  [0M 1M, 0M, -1M, -2M, -3M, -4M, -5M, -6M, -7M])
 
 ; Keywords used by the block markers
 (def block-keywords

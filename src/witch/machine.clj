@@ -6,7 +6,7 @@
 (def initial-machine-state
   {:stores              (into [] (repeat 90 0.0000000M))
    :accumulator         0.00000000000000M
-   :transfer-shift      1M
+   :transfer-shift      0M
    :transfer-complement false
    :transfer-output     0.00000000000000M
    :printing-layout     0M
@@ -99,9 +99,11 @@
     key
     (->
       (:accumulator machine-state)
-      (* 10000000M)
+      (.movePointRight 7)
       (rem 1M)
-      (* 10M))))
+      (.movePointRight 1)
+      (+ (* 10M (quot (:accumulator machine-state) 10M)))
+      (.setScale 7))))
 
 (defn input-accumulator
   [machine-state key _]
@@ -114,10 +116,6 @@
   (assoc machine-state
     key
     (get (:stores machine-state) (- address 10))))
-
-(defn input-zero
-  [machine-state key _]
-  (assoc machine-state key 0M))
 
 ; Special write destinations
 
@@ -152,21 +150,21 @@
 
 (defn output-accumulator
   [machine-state _ value]
-  (when (not (#{0M 9M} (quot value 10M)))
-    (throw (ex-info "Value out of range" machine-state)))
   (let [old-val (:accumulator machine-state)
         new-val (n/adjust-places (+ old-val value) 14)]
+    (when (not (#{0M 9M} (quot new-val 10M)))
+      (throw (ex-info "Value out of range" machine-state)))
     (assoc machine-state :accumulator new-val)))
 
 (defn output-store
   [machine-state address value]
   (when (>= address 100)
     (throw (ex-info "Register out of range" machine-state)))
-  (when (not (#{0M 9M} (quot value 10M)))
-    (throw (ex-info "Value out of range" machine-state)))
   (let [a (- address 10)
         old-val (get-in machine-state [:stores a])
         new-val (n/adjust-places (+ old-val value) 7)]
+    (when (not (#{0M 9M} (quot new-val 10M)))
+      (throw (ex-info "Value out of range" machine-state)))
     (assoc-in machine-state [:stores a] new-val)))
 
 ; Clear functions
