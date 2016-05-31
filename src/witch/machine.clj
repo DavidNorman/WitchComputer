@@ -150,22 +150,23 @@
 
 (defn output-accumulator
   [machine-state _ value]
-  (let [old-val (:accumulator machine-state)
-        new-val (n/adjust-places (+ old-val value) 14)]
-    (when (not (#{0M 9M} (quot new-val 10M)))
+  (let [old-value (:accumulator machine-state)
+        new-value (n/carry-over (+ old-value value) 14)]
+    (when (not (#{0M 9M} (quot new-value 10M)))
       (throw (ex-info "Value out of range" machine-state)))
-    (assoc machine-state :accumulator new-val)))
+    (assoc machine-state :accumulator new-value)))
 
 (defn output-store
   [machine-state address value]
   (when (>= address 100)
     (throw (ex-info "Register out of range" machine-state)))
   (let [a (- address 10)
-        old-val (get-in machine-state [:stores a])
-        new-val (n/adjust-places (+ old-val value) 7)]
-    (when (not (#{0M 9M} (quot new-val 10M)))
+        old-value (get-in machine-state [:stores a])
+        truncated-value (n/adjust-places value 7)
+        new-value (n/carry-over (+ old-value truncated-value) 7)]
+    (when (not (#{0M 9M} (quot new-value 10M)))
       (throw (ex-info "Value out of range" machine-state)))
-    (assoc-in machine-state [:stores a] new-val)))
+    (assoc-in machine-state [:stores a] new-value)))
 
 ; Clear functions
 

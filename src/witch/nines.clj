@@ -49,12 +49,13 @@
 
 (defn carry-over
   "Add the nines complement overflow back into the result"
-  [a m n]
-  (let [carry (.setScale (quot a (pow10 m)) 0)]
+  [a n]
+  (let [carry-value (.setScale (quot a 100M) 0)
+        carry-over (.movePointLeft carry-value n)]
     (->
       a
-      (+ (.movePointLeft carry n))
-      (mod (pow10 m)))))
+      (+ carry-over)
+      (adjust-places n))))
 
 (defn negate
   "Find the nines complement negative of a number"

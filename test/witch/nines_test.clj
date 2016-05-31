@@ -41,11 +41,17 @@
   (is (= (h/value-and-scale (n/adjust-places 0.22222222M 5))
          [0.22222M 5]))
 
+  (is (= (h/value-and-scale (n/adjust-places 0.99999999M 5))
+         [0.99999M 5]))
+
   (is (= (h/value-and-scale (n/adjust-places 99.22222222M 5))
          [99.22222M 5]))
 
   (is (= (h/value-and-scale (n/adjust-places 9999.222222222222M 5))
          [99.22222M 5]))
+
+  (is (= (h/value-and-scale (n/adjust-places 9999.999999999999M 5))
+         [99.99999M 5]))
   )
 
 
@@ -75,16 +81,16 @@
   )
 
 (deftest carry-over
-  (is (= (h/value-and-scale (n/carry-over 100.000000M 2 7))
+  (is (= (h/value-and-scale (n/carry-over 100.000000M 7))
          [00.0000001M 7]))
 
-  (is (= (h/value-and-scale (n/carry-over 100.0000000000000M 2 14))
+  (is (= (h/value-and-scale (n/carry-over 100.0000000000000M 14))
          [00.00000000000001M 14]))
 
-  (is (= (h/value-and-scale (n/carry-over 23400.0000000000000M 2 14))
+  (is (= (h/value-and-scale (n/carry-over 23400.0000000000000M 14))
          [00.00000000000234M 14]))
 
-  (is (= (h/value-and-scale (n/carry-over 199.99999999999998M 2 14))
+  (is (= (h/value-and-scale (n/carry-over 199.99999999999998M 14))
          [99.99999999999999M 14]))
   )
 
