@@ -503,8 +503,8 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 99.999998M)
-           (assoc-in [:stores 10] 99.999998M)
+           (assoc-in [:stores 0] 99.9999998M)
+           (assoc-in [:stores 10] 99.9999998M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
