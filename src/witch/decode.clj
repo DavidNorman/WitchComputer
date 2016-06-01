@@ -12,6 +12,13 @@
   [:block0 :block1 :block2 :block3 :block4
    :block5 :block6 :block7 :block8 :block9])
 
+(defn apply-while
+  "Apply a function to a value repeatedly while a predicate
+  returns true for the result."
+  [f x p]
+  (if (p x) (recur f (f x) p) x))
+
+
 (defn invalid-stores
   "Check that a pair of stores are ok for an ALU order"
   [src dst]
@@ -118,7 +125,7 @@
 
       ; First perform the summations
       (assoc :sending-clear false)
-      (assoc :transfer-complement :multiply)
+      (assoc :transfer-complement :muldiv)
       (assoc :transfer-shift (- step))
       (exec-multiply-summation a units)
 
@@ -155,13 +162,28 @@
       (reduce (partial exec-multiply-step a b) $ (range 8))
       (m/advance-pc $)))
 
-; todo remainder in accumulator
+; TODO divide properly
 (defn exec-divide
   [machine-state a b]
   (when (or (invalid-stores a b)
             (< a 10)
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
+
+  ; Division is performed by a sequence of the same form, i.e., multiple transfer,
+  ; single transfer, operation of the shift; the quotient is built up digit by digit
+  ; in the register by moving the discharge one step forward or backward in the
+  ; register for each transfer. For a divisor and dividend of the same sign, the
+  ; divisor is subtracted from the dividend and the register moved forward until
+  ; the sign of the dividend changes, when the pulse generator gives the finish
+  ; signal. At this point one subtraction too many has been performed, and this is
+  ; corrected by making one addition and moving the register back one step, When
+  ; the divisor and dividend are of opposite sign, the multiple transfers are
+  ; additions, with the register being moved back step by step and the single transfer
+  ; is a subtraction. In this case it is not necessary to move on the register during
+  ; the single transfer, since the fact that it has started from 0 rather than 9,
+  ; the correct starting point for a complement means that the necessary correction
+  ; has already been made.
 
   (->
     machine-state

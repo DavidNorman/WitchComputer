@@ -10,6 +10,17 @@
   [machine-state regs]
   (map #(get (:stores machine-state) %) regs))
 
+; Utility functions
+
+(deftest apply-while
+  (is (= (d/apply-while inc 0 (fn [x] (< x 10)))
+         10))
+
+  (is (= (d/apply-while (partial cons 1) [] (fn [x] (< (count x) 4)))
+         [1 1 1 1]))
+
+  )
+
 ; Instructions
 
 (deftest invalid-instruction

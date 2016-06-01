@@ -10,7 +10,7 @@
    :transfer-shift      0M
    :transfer-complement :false
    :transfer-output     0.00000000000000M
-   :muldiv-negative     { :sender false :register false :accumulator false }
+   :muldiv-negative     {:sender false :register false :accumulator false}
    :printing-layout     0M
    :pc                  0M
    :sign-test           :false
@@ -69,13 +69,13 @@
   :true - do the complement.
   :false - don't do the complement.
   :sending - do the complement only if the sending value is negative.
-  :multiply - do the complement only if the latched register sign is negative."
+  :muldiv - do the complement dicated by :muldiv-complement."
   [x machine-state]
   (if (case (:transfer-complement machine-state)
         :true true
         :false false
         :sending (n/negative? x)
-        :multiply (:muldiv-complement machine-state))
+        :muldiv (:muldiv-complement machine-state))
     (n/negate x)
     x))
 
