@@ -8,8 +8,9 @@
    :accumulator         0.00000000000000M
    :sending-clear       false
    :transfer-shift      0M
-   :transfer-complement false
+   :transfer-complement :false
    :transfer-output     0.00000000000000M
+   :muldiv-negative     { :sender false :register false :accumulator false }
    :printing-layout     0M
    :pc                  0M
    :sign-test           :false
@@ -56,15 +57,27 @@
   (let [sign (n/sign x)]
     (->
       x
-      (n/sign-extend)
+      (n/sign-extend-left)
       (.movePointRight shift)
       (mod 10.0M)
       (+ (* sign 10M)))))
 
 (defn transfer-complement
-  "Perform the complement part of the transfer unit"
-  [x comp]
-  (if comp (n/negate x) x))
+  "Perform the complement part of the transfer unit.  Whether the complement is
+  taken depends on the value of :transfer-complement.
+
+  :true - do the complement.
+  :false - don't do the complement.
+  :sending - do the complement only if the sending value is negative.
+  :multiply - do the complement only if the latched register sign is negative."
+  [x machine-state]
+  (if (case (:transfer-complement machine-state)
+        :true true
+        :false false
+        :sending (n/negative? x)
+        :multiply (:muldiv-complement machine-state))
+    (n/negate x)
+    x))
 
 (defn transfer
   "Perform the transfer (and transformation) of the source value.  The
@@ -74,9 +87,10 @@
     :transfer-output
     (->
       (:sending-value machine-state)
+      (n/sign-extend-right)
       (transfer-shift (:transfer-shift machine-state))
-      (+ 0.00000000000000M)
-      (transfer-complement (:transfer-complement machine-state)))))
+      (n/adjust-places 14)
+      (transfer-complement machine-state))))
 
 ; Cleared value of store/accumulator
 

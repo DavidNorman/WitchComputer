@@ -42,10 +42,18 @@
   [x]
   (.setScale (quot x 10M) 0))
 
-(defn sign-extend
+(defn sign-extend-left
   "Extend sign bit out by 7 more digits"
   [x]
   (+ x (* (sign x) 111111100M)))
+
+(defn sign-extend-right
+  "Sign extend to 14 digits after the decimal point"
+  [x]
+  (if (= (.scale x) 7)
+    (+ x (* (sign x) 0.00000001111111M))
+    x))
+
 
 (defn carry-over
   "Add the nines complement overflow back into the result"

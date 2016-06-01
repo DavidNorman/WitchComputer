@@ -298,7 +298,7 @@
            :accumulator)
          1.00000011111111M))
 
-  ; Into accumulator (+ve - -ve) ; TODO is this right (or 3.23400011111111)?
+  ; Into accumulator (+ve - -ve) ; TODO is this right (or 3.3.23400021111110M)?
   (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 98.7659999M)
@@ -307,7 +307,7 @@
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         3.23400021111110M))
+         3.23400011111111M))
 
   ; From accumulator (lower digits are dropped before subtraction)
   (is (= (->
@@ -451,7 +451,27 @@
            :accumulator)
          0.00123400000000M))
 
-  #_(is (= (->
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 0.0000001M)
+           (assoc-in [:stores 10] 0.0000001M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         0.00000000000001M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 1.2340000M)
+           (assoc-in [:stores 10] 98.9999999M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         98.76599999999999M))
+
+  (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 99.9999994M)
            (assoc-in [:stores 10] 0.0050000M)
@@ -461,7 +481,27 @@
            :accumulator)
          99.99999999749999M))
 
-  #_(is (= (->
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 10] 0.0000001M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         99.9999999999998M))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 0.0000001M)
+           (assoc-in [:stores 10] 99.999998M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         99.9999999999998M))
+
+  (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 99.999998M)
            (assoc-in [:stores 10] 99.999998M)
@@ -483,7 +523,7 @@
          [99.999998M 0.0000000M]))
 
   ; Receiving address is cleared, sending address isn't cleared ; TODO is this right?
-  (is (= (->
+  #_(is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 99.999998M)
            (assoc-in [:stores 10] 99.999998M)

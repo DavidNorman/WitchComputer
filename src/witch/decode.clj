@@ -42,7 +42,7 @@
   (->
     machine-state
     (assoc :sending-clear false)
-    (assoc :transfer-complement false)
+    (assoc :transfer-complement :false)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -57,7 +57,7 @@
   (->
     machine-state
     (assoc :sending-clear true)
-    (assoc :transfer-complement false)
+    (assoc :transfer-complement :false)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -71,7 +71,7 @@
   (->
     machine-state
     (assoc :sending-clear false)
-    (assoc :transfer-complement true)
+    (assoc :transfer-complement :true)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -86,7 +86,7 @@
   (->
     machine-state
     (assoc :sending-clear true)
-    (assoc :transfer-complement true)
+    (assoc :transfer-complement :true)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -111,18 +111,17 @@
   is set to the step number.  Following this, the multiplier is
   shifted one digit to the left."
   [a b machine-state step]
-
   (let [reg (m/read-destination-address machine-state b)
         neg (n/negative? reg)
         units (n/units-digit reg)]
     (->
       machine-state
       (assoc :sending-clear false)
-      (assoc :transfer-complement neg)
+      (assoc :transfer-complement :multiply)
       (assoc :transfer-shift (- step))
       (exec-multiply-summation a units)
       (assoc :sending-clear true)
-      (assoc :transfer-complement false)
+      (assoc :transfer-complement :false)
       (assoc :transfer-shift 1M)
       (m/read-sending-address b)
       (m/transfer)
@@ -141,7 +140,16 @@
 
   (as->
       machine-state $
-      (reduce (partial exec-multiply-step a b) $ (range 7))
+      (assoc $ :muldiv-complement
+               (n/negative? (:sending-value (m/read-sending-address machine-state b))))
+
+      (assoc $ :sending-clear true)
+      (assoc $ :transfer-complement :sending)
+      (m/read-sending-address $ b)
+      (m/transfer $)
+      (m/write-address $ b)
+
+      (reduce (partial exec-multiply-step a b) $ (range 8))
       (m/advance-pc $)))
 
 ; todo remainder in accumulator
@@ -162,14 +170,15 @@
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (as-> machine-state $
-        (assoc $ :sending-clear false)
-        (m/read-sending-address $ a)
-        (assoc $ :transfer-complement (n/negative? (:sending-value $)))
-        (m/transfer $)
-        (m/write-address $ b)
-        (assoc $ :transfer-shift 1)
-        (m/advance-pc $)))
+  (->
+    machine-state
+    (assoc :sending-clear false)
+    (assoc :transfer-complement :sending)
+    (m/read-sending-address a)
+    (m/transfer)
+    (m/write-address b)
+    (assoc :transfer-shift 1)
+    (m/advance-pc)))
 
 ; Control instruction decodes
 

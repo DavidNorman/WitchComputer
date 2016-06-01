@@ -107,15 +107,32 @@
          0.00001M))
   )
 
-(deftest sign-extend
-  (is (= (h/value-and-scale (n/sign-extend 0.0000000M))
+(deftest sign-extend-left
+  (is (= (h/value-and-scale (n/sign-extend-left 0.0000000M))
          [0.0000000M 7]))
 
-  (is (= (h/value-and-scale (n/sign-extend 90.0000000M))
+  (is (= (h/value-and-scale (n/sign-extend-left 90.0000000M))
          [999999990.0000000M 7]))
 
-  (is (= (h/value-and-scale (n/sign-extend 99.9999999M))
+  (is (= (h/value-and-scale (n/sign-extend-left 99.9999999M))
          [999999999.9999999M 7]))
+  )
+
+(deftest sign-extend-right
+  (is (= (h/value-and-scale (n/sign-extend-right 0.0000000M))
+         [0.000000000000000M 14]))
+
+  (is (= (h/value-and-scale (n/sign-extend-right 90.0000000M))
+         [90.00000009999999M 14]))
+
+  (is (= (h/value-and-scale (n/sign-extend-right 99.9999999M))
+         [99.99999999999999M 14]))
+
+  (is (= (h/value-and-scale (n/sign-extend-right 0.00000000000001M))
+         [0.00000000000001M 14]))
+
+  (is (= (h/value-and-scale (n/sign-extend-right 99.12345678901234M))
+         [99.12345678901234M 14]))
   )
 
 (deftest sign
