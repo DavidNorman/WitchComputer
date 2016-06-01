@@ -354,6 +354,48 @@
              )
          [99.99999999999998M 14]))
 
+  ; source conditional complement
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.2000000M)
+             (assoc :transfer-complement :sending)
+             (assoc :transfer-shift 0)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.20000000000000M 14]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 99.7999999M)
+             (assoc :transfer-complement :sending)
+             (assoc :transfer-shift 0)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.20000000000000M 14]))
+
+  ; source conditional complement and shift x0.0000001
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 0.0000001M)
+             (assoc :transfer-complement :sending)
+             (assoc :transfer-shift -7)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.00000000000001M 14]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc :sending-value 99.9999998M)
+             (assoc :transfer-complement :sending)
+             (assoc :transfer-shift -7)
+             (m/transfer)
+             :transfer-output
+             (h/value-and-scale)
+             )
+         [0.00000000000001M 14]))
+
   )
 
 (deftest advance-pc
