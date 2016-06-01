@@ -112,14 +112,17 @@
   shifted one digit to the left."
   [a b machine-state step]
   (let [reg (m/read-destination-address machine-state b)
-        neg (n/negative? reg)
         units (n/units-digit reg)]
     (->
       machine-state
+
+      ; First perform the summations
       (assoc :sending-clear false)
       (assoc :transfer-complement :multiply)
       (assoc :transfer-shift (- step))
       (exec-multiply-summation a units)
+
+      ; Now shift the multiplier register
       (assoc :sending-clear true)
       (assoc :transfer-complement :false)
       (assoc :transfer-shift 1M)

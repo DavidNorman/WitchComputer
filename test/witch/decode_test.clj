@@ -522,8 +522,8 @@
            (get-registers [0 10]))
          [99.999998M 0.0000000M]))
 
-  ; Receiving address is cleared, sending address isn't cleared ; TODO is this right?
-  #_(is (= (->
+  ; Receiving address is cleared, sending address isn't cleared
+  (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 99.999998M)
            (assoc-in [:stores 10] 99.999998M)
@@ -531,7 +531,7 @@
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [99.999998M 90.0000000M]))
+         [99.999998M 0.0000000M]))
 
   ; A non-empty accumulator has the value added
   (is (= (->
