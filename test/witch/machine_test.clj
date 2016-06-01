@@ -448,32 +448,32 @@
          [8M 0]))
   )
 
-(deftest increment-register-tube
+(deftest inc-dec-register-tube
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/increment-register-tube 10 0)
+             (m/inc-dec-register-tube 10 0 true)
              (get-in [:stores 0])
              (h/value-and-scale))
          [2.2345678M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/increment-register-tube 10 1)
+             (m/inc-dec-register-tube 10 1 true)
              (get-in [:stores 0])
              (h/value-and-scale))
          [1.3345678M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/increment-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 true)
              (get-in [:stores 0])
              (h/value-and-scale))
          [1.2345679M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 91.2345678M)
-             (m/increment-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 true)
              (get-in [:stores 0])
              (h/value-and-scale))
          [91.2345679M 7]))
@@ -481,38 +481,35 @@
   ; No carry
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 91.9999999M)
-             (m/increment-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 true)
              (get-in [:stores 0])
              (h/value-and-scale))
          [91.9999990M 7]))
-  )
-
-(deftest decrement-register-tube
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/decrement-register-tube 10 0)
+             (m/inc-dec-register-tube 10 0 false)
              (get-in [:stores 0])
              (h/value-and-scale))
          [0.2345678M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/decrement-register-tube 10 1)
+             (m/inc-dec-register-tube 10 1 false)
              (get-in [:stores 0])
              (h/value-and-scale))
          [1.1345678M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 1.2345678M)
-             (m/decrement-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 false)
              (get-in [:stores 0])
              (h/value-and-scale))
          [1.2345677M 7]))
 
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 91.2345678M)
-             (m/decrement-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 false)
              (get-in [:stores 0])
              (h/value-and-scale))
          [91.2345677M 7]))
@@ -520,7 +517,7 @@
   ; No carry
   (is (= (-> m/initial-machine-state
              (assoc-in [:stores 0] 91.0000000M)
-             (m/decrement-register-tube 10 7)
+             (m/inc-dec-register-tube 10 7 false)
              (get-in [:stores 0])
              (h/value-and-scale))
          [91.0000009M 7]))

@@ -1,5 +1,6 @@
 (ns witch.machine
   (:require [witch.nines :as n]
+            [witch.utils :as u]
             [clojure.pprint :as pp]))
 
 
@@ -238,25 +239,15 @@
     (get (:stores machine-state) (- address 10))
     (n/get-digit tube)))
 
-(defn increment-register-tube
-  "Increase a given tube of the register by one, without carry"
-  [machine-state address tube]
+(defn inc-dec-register-tube
+  "Increase/decrease a given tube of the register by one, without carry"
+  [machine-state address tube increment]
   (let [old-val (get (:stores machine-state) (- address 10))
-        carry (= (n/get-digit old-val tube) 9M)
-        inc-val (.movePointLeft (if carry 9M 1M) tube)]
+        wrap (= (n/get-digit old-val tube) (if increment 9M 0M))
+        inc-val (.movePointLeft (if wrap 9M 1M) tube)]
     (assoc-in machine-state
               [:stores (- address 10)]
-              ((if carry - +) old-val inc-val))))
-
-(defn decrement-register-tube
-  "Decrease a given tube in the register by one, without carry"
-  [machine-state address tube]
-  (let [old-val (get (:stores machine-state) (- address 10))
-        carry (= (n/get-digit old-val tube) 0M)
-        inc-val (.movePointLeft (if carry 9M 1M) tube)]
-    (assoc-in machine-state
-              [:stores (- address 10)]
-              ((if carry + -) old-val inc-val))))
+              ((if (u/xor wrap increment) + -) old-val inc-val))))
 
 (defn advance-pc
   [machine-state]

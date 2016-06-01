@@ -1,5 +1,6 @@
 (ns witch.decode
   (:require [witch.machine :as m]
+            [witch.utils :as u]
             [clojure.pprint :as pp]
             [witch.nines :as n]))
 
@@ -11,12 +12,6 @@
 (def block-keywords
   [:block0 :block1 :block2 :block3 :block4
    :block5 :block6 :block7 :block8 :block9])
-
-(defn apply-while
-  "Apply a function to a value repeatedly while a predicate
-  returns true for the result."
-  [f x p]
-  (if (p x) (recur f (f x) p) x))
 
 
 (defn invalid-stores
