@@ -398,6 +398,135 @@
 
   )
 
+(deftest read-register-tube
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/read-register-tube 10 0)
+             (h/value-and-scale))
+         [1M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/read-register-tube 10 1)
+             (h/value-and-scale))
+         [2M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/read-register-tube 10 2)
+             (h/value-and-scale))
+         [3M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/read-register-tube 10 7)
+             (h/value-and-scale))
+         [8M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/read-register-tube 10 0)
+             (h/value-and-scale))
+         [1M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/read-register-tube 10 1)
+             (h/value-and-scale))
+         [2M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/read-register-tube 10 2)
+             (h/value-and-scale))
+         [3M 0]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/read-register-tube 10 7)
+             (h/value-and-scale))
+         [8M 0]))
+  )
+
+(deftest increment-register-tube
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/increment-register-tube 10 0)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [2.2345678M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/increment-register-tube 10 1)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [1.3345678M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/increment-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [1.2345679M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/increment-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [91.2345679M 7]))
+
+  ; No carry
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.9999999M)
+             (m/increment-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [91.9999990M 7]))
+  )
+
+(deftest decrement-register-tube
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/decrement-register-tube 10 0)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [0.2345678M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/decrement-register-tube 10 1)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [1.1345678M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 1.2345678M)
+             (m/decrement-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [1.2345677M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.2345678M)
+             (m/decrement-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [91.2345677M 7]))
+
+  ; No carry
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 91.0000000M)
+             (m/decrement-register-tube 10 7)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [91.0000009M 7]))
+  )
+
+
 (deftest advance-pc
 
   ; When PC is a tape - it isn't incremented

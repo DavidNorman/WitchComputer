@@ -148,6 +148,35 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
+  ; Where the multiplier is positive, the multiplicand is added into the
+  ; accumulator N1 times where N1 is the number stored in the most significant
+  ; tube of the register (multiplier). A shift to the right is now introduced
+  ; by the relay shift circuit (i.e., in Fig. 6, point A is connected to b and
+  ; B to c, points S and a being connected to s), and the multiplicand added
+  ; into the accumulator N2 times, where N2 is the number stored in the second
+  ; tube of the register. This process of multiple additions alternating with
+  ; operation of the shift unit continues until the whole of the multiplier is
+  ; dealt with, In order to perform the correct number of additions, the tube
+  ; in the register containing the digit of the multiplier being considered is
+  ; moved back one step (for convenience it is actually moved on nine steps
+  ; without carry over) for each single addition, The pulse generator is arranged
+  ; to give the finish signal calling for the next operation when the appropriate
+  ; digit of the register has reached zero and carryover is complete.
+
+  ; When the multiplier is a complement, a similar procedure is carried out
+  ; with a few modifications. Multiple subtractions are required, and the register
+  ; tube is moved forward one step for each subtraction. Since the complement of
+  ; 0 is 9, it follows that transfers should stop when the register tube reaches
+  ; 9, As the pulse generator allows transfers to continue until the tube reaches
+  ; 0, one too many will be performed by the time the finish signal is given,
+  ; and it is necessary to make a single addition to correct for this. The
+  ; sequence then is multiple subtraction, single addition, operation of shift.
+  ; These sequences are controlled by relays in the sequence controlling and
+  ; routing section of the machine. It is, of course, only necessary to give
+  ; the order "multiply"; the precise sequence required is selected before the
+  ; operation starts by a relay circuit dependent on the sign of the contents
+  ; of the selected addresses.
+
   (as->
       machine-state $
       (assoc $ :muldiv-complement
@@ -185,10 +214,14 @@
   ; the correct starting point for a complement means that the necessary correction
   ; has already been made.
 
-  (->
-    machine-state
-    (m/read-sending-address a)
-    (m/advance-pc)))
+  (as->
+    machine-state $
+    (assoc $ :muldiv-complement (=
+                                  (n/sign (:sending-value (m/read-sending-address machine-state a)))
+                                  (n/sign (:sending-value (m/read-sending-address machine-state 9)))))
+
+    (m/read-sending-address $ a)
+    (m/advance-pc $)))
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]

@@ -225,12 +225,38 @@
   [machine-state address]
   ((write-fn address) machine-state address (:transfer-output machine-state)))
 
+; TODO: REMOVE
 (defn read-destination-address
-  "Return the value of the destination address.  This is used during multiplication
-  for getting the value of the 'register'."
   [machine-state address]
   (get (:stores machine-state) (- address 10)))
 
+
+(defn read-register-tube
+  "Return the value of a particular register tube."
+  [machine-state address tube]
+  (->
+    (get (:stores machine-state) (- address 10))
+    (n/get-digit tube)))
+
+(defn increment-register-tube
+  "Increase a given tube of the register by one, without carry"
+  [machine-state address tube]
+  (let [old-val (get (:stores machine-state) (- address 10))
+        carry (= (n/get-digit old-val tube) 9M)
+        inc-val (.movePointLeft (if carry 9M 1M) tube)]
+    (assoc-in machine-state
+              [:stores (- address 10)]
+              ((if carry - +) old-val inc-val))))
+
+(defn decrement-register-tube
+  "Decrease a given tube in the register by one, without carry"
+  [machine-state address tube]
+  (let [old-val (get (:stores machine-state) (- address 10))
+        carry (= (n/get-digit old-val tube) 0M)
+        inc-val (.movePointLeft (if carry 9M 1M) tube)]
+    (assoc-in machine-state
+              [:stores (- address 10)]
+              ((if carry + -) old-val inc-val))))
 
 (defn advance-pc
   [machine-state]

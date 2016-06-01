@@ -206,3 +206,21 @@
   (is (= (n/units-digit 9.9999999M))
       9M)
   )
+
+(deftest get-digit
+
+  (is (= (h/value-and-scale (n/get-digit 1.2345678M 0)))
+      [1M 0])
+
+  (is (= (h/value-and-scale (n/get-digit 1.2345678M 1)))
+      [2M 0])
+
+  (is (= (h/value-and-scale (n/get-digit 1.2345678M 7)))
+      [8M 0])
+
+  (is (= (h/value-and-scale (n/get-digit 91.2345678M 0)))
+      [1M 0])
+
+  (is (= (h/value-and-scale (n/get-digit 91.2345678M 7)))
+      [8M 0])
+  )
