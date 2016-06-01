@@ -1,4 +1,9 @@
 (ns witch.decode
+  "Decode and process the instructions.
+
+  See http://www.computerconservationsociety.org/witch5.htm for a fairly
+  comprehensive description of the arithmetic operations."
+
   (:require [witch.machine :as m]
             [witch.utils :as u]
             [clojure.pprint :as pp]
@@ -44,7 +49,7 @@
   (->
     machine-state
     (assoc :sending-clear false)
-    (assoc :transfer-complement :false)
+    (assoc :transfer-complement false)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -59,7 +64,7 @@
   (->
     machine-state
     (assoc :sending-clear true)
-    (assoc :transfer-complement :false)
+    (assoc :transfer-complement false)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -73,7 +78,7 @@
   (->
     machine-state
     (assoc :sending-clear false)
-    (assoc :transfer-complement :true)
+    (assoc :transfer-complement true)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
@@ -88,23 +93,11 @@
   (->
     machine-state
     (assoc :sending-clear true)
-    (assoc :transfer-complement :true)
+    (assoc :transfer-complement true)
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
     (m/advance-pc)))
-
-(defn exec-multiply-summation
-  "Apply a summation operation into the accumulator multiple times"
-  [machine-state a n]
-  (reduce (fn [machine-state _]
-            (->
-              machine-state
-              (m/read-sending-address a)
-              (m/transfer)
-              (m/write-address 9)))
-          machine-state
-          (range n)))
 
 (defn exec-multiply-step
   "One stage of the long multiplication.  In each stage
@@ -113,75 +106,46 @@
   is set to the step number.  Following this, the multiplier is
   shifted one digit to the left."
   [a b machine-state step]
-  (let [reg (m/read-destination-address machine-state b)
-        units (n/units-digit reg)]
-    (->
-      machine-state
+  (as->
+    machine-state $
 
-      ; First perform the summations
-      (assoc :sending-clear false)
-      (assoc :transfer-complement :muldiv)
-      (assoc :transfer-shift (- step))
-      (exec-multiply-summation a units)
+    ; First perform the summations
+    (assoc $ :sending-clear false)
+    (assoc $ :transfer-complement (:muldiv-complement $))
+    (assoc $ :transfer-shift (- step))
 
-      ; Now shift the multiplier register
-      (assoc :sending-clear true)
-      (assoc :transfer-complement :false)
-      (assoc :transfer-shift 1M)
-      (m/read-sending-address b)
-      (m/transfer)
-      (m/write-address b))))
+    (u/apply-while
+      #(-> %
+           (m/read-sending-address a)
+           (m/transfer)
+           (m/write-address 9)
+           (m/inc-dec-register-tube b step (:muldiv-complement %)))
+      $
+      #(not= (m/read-register-tube % b step) 0M))
+
+    ; Step back one place if stepping the register forwards
+    (if (:muldiv-complement $)
+      (->
+        $
+        (assoc :transfer-complement (not (:muldiv-complement $)))
+        (m/read-sending-address a)
+        (m/transfer)
+        (m/write-address 9))
+      $)))
 
 (defn exec-multiply
-  "Perform long multiplication on 2 values into the accumulator.
-
-  See http://www.computerconservationsociety.org/witch5.htm for a fairly
-  comprehensive description of the multiplication process."
+  "Perform long multiplication on 2 values into the accumulator."
   [machine-state a b]
   (when (or (invalid-stores a b)
             (< a 10)
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  ; Where the multiplier is positive, the multiplicand is added into the
-  ; accumulator N1 times where N1 is the number stored in the most significant
-  ; tube of the register (multiplier). A shift to the right is now introduced
-  ; by the relay shift circuit (i.e., in Fig. 6, point A is connected to b and
-  ; B to c, points S and a being connected to s), and the multiplicand added
-  ; into the accumulator N2 times, where N2 is the number stored in the second
-  ; tube of the register. This process of multiple additions alternating with
-  ; operation of the shift unit continues until the whole of the multiplier is
-  ; dealt with, In order to perform the correct number of additions, the tube
-  ; in the register containing the digit of the multiplier being considered is
-  ; moved back one step (for convenience it is actually moved on nine steps
-  ; without carry over) for each single addition, The pulse generator is arranged
-  ; to give the finish signal calling for the next operation when the appropriate
-  ; digit of the register has reached zero and carryover is complete.
-
-  ; When the multiplier is a complement, a similar procedure is carried out
-  ; with a few modifications. Multiple subtractions are required, and the register
-  ; tube is moved forward one step for each subtraction. Since the complement of
-  ; 0 is 9, it follows that transfers should stop when the register tube reaches
-  ; 9, As the pulse generator allows transfers to continue until the tube reaches
-  ; 0, one too many will be performed by the time the finish signal is given,
-  ; and it is necessary to make a single addition to correct for this. The
-  ; sequence then is multiple subtraction, single addition, operation of shift.
-  ; These sequences are controlled by relays in the sequence controlling and
-  ; routing section of the machine. It is, of course, only necessary to give
-  ; the order "multiply"; the precise sequence required is selected before the
-  ; operation starts by a relay circuit dependent on the sign of the contents
-  ; of the selected addresses.
-
   (as->
       machine-state $
       (assoc $ :muldiv-complement
                (n/negative? (:sending-value (m/read-sending-address machine-state b))))
-
-      (assoc $ :sending-clear true)
-      (assoc $ :transfer-complement :sending)
-      (m/read-sending-address $ b)
-      (m/transfer $)
-      (m/write-address $ b)
+      (m/clear-sign $ b)
 
       (reduce (partial exec-multiply-step a b) $ (range 8))
       (m/advance-pc $)))

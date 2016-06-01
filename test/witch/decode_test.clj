@@ -483,23 +483,23 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 0] 99.9999998M)
            (assoc-in [:stores 10] 0.0000001M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         99.9999999999998M))
+         99.99999999999998M))
 
   (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] 0.0000001M)
-           (assoc-in [:stores 10] 99.999998M)
+           (assoc-in [:stores 10] 99.9999998M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            :accumulator)
-         99.9999999999998M))
+         99.99999999999998M))
 
   (is (= (->
            m/initial-machine-state
@@ -514,24 +514,24 @@
   ; Receiving address is cleared, sending address isn't cleared
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 99.999998M)
+           (assoc-in [:stores 0] 99.9999998M)
            (assoc-in [:stores 10] 1.0000000M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [99.999998M 0.0000000M]))
+         [99.9999998M 0.0000000M]))
 
   ; Receiving address is cleared, sending address isn't cleared
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 99.999998M)
-           (assoc-in [:stores 10] 99.999998M)
+           (assoc-in [:stores 0] 99.9999998M)
+           (assoc-in [:stores 10] 99.9999998M)
            (assoc :tapes [[[nil 5.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [99.999998M 0.0000000M]))
+         [99.9999998M 0.0000000M]))
 
   ; A non-empty accumulator has the value added
   (is (= (->

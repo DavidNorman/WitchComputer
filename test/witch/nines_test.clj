@@ -189,24 +189,6 @@
       true)
   )
 
-(deftest units-digit
-
-  (is (= (n/units-digit 0.0000001M))
-      0M)
-
-  (is (= (n/units-digit 1.0000001M))
-      1M)
-
-  (is (= (n/units-digit 91.9999999M))
-      1M)
-
-  (is (= (n/units-digit 99.9999999M))
-      9M)
-
-  (is (= (n/units-digit 9.9999999M))
-      9M)
-  )
-
 (deftest get-digit
 
   (is (= (h/value-and-scale (n/get-digit 1.2345678M 0)))

@@ -70,18 +70,6 @@
   [a]
   (- 100M a (.movePointLeft 1M (.scale a))))
 
-(defn positive?
-  [a]
-  (< a 50M))
-
-(def negative? (comp not positive?))
-
-; TODO remove this
-(defn units-digit
-  "Get the units digit of a nines complement number"
-  [x]
-  (mod (quot x 1M) 10M))
-
 (defn get-digit
   "Get the n'th digit from a number"
   [x n]
@@ -90,3 +78,10 @@
     (.movePointRight n)
     (rem 10M)
     (.setScale 0 java.math.RoundingMode/DOWN)))
+
+(defn positive?
+  [a]
+  (< a 50M))
+
+(def negative? (comp not positive?))
+

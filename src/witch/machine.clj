@@ -9,9 +9,8 @@
    :accumulator         0.00000000000000M
    :sending-clear       false
    :transfer-shift      0M
-   :transfer-complement :false
+   :transfer-complement false
    :transfer-output     0.00000000000000M
-   :muldiv-negative     {:sender false :register false :accumulator false}
    :printing-layout     0M
    :pc                  0M
    :sign-test           :false
@@ -67,16 +66,14 @@
   "Perform the complement part of the transfer unit.  Whether the complement is
   taken depends on the value of :transfer-complement.
 
-  :true - do the complement.
-  :false - don't do the complement.
-  :sending - do the complement only if the sending value is negative.
-  :muldiv - do the complement dicated by :muldiv-complement."
+  true - do the complement.
+  false - don't do the complement.
+  :sending - do the complement only if the sending value is negative."
   [x machine-state]
   (if (case (:transfer-complement machine-state)
-        :true true
-        :false false
-        :sending (n/negative? x)
-        :muldiv (:muldiv-complement machine-state))
+        true true
+        false false
+        :sending (n/negative? x))
     (n/negate x)
     x))
 
@@ -226,11 +223,12 @@
   [machine-state address]
   ((write-fn address) machine-state address (:transfer-output machine-state)))
 
-; TODO: REMOVE
-(defn read-destination-address
+(defn clear-sign
+  "Clear the sign digit of a store."
   [machine-state address]
-  (get (:stores machine-state) (- address 10)))
-
+  (let [old-val (get (:stores machine-state) (- address 10))
+        new-val (mod old-val 10M)]
+    (assoc-in machine-state [:stores (- address 10)] new-val)))
 
 (defn read-register-tube
   "Return the value of a particular register tube."

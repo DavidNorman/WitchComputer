@@ -10,7 +10,7 @@
 
   (is (= (:stores m/initial-machine-state) (into [] (repeat 90 0.0000000M))))
   (is (= (:transfer-shift m/initial-machine-state) 0M))
-  (is (= (:transfer-complement m/initial-machine-state) :false))
+  (is (= (:transfer-complement m/initial-machine-state) false))
   (is (= (:finished m/initial-machine-state) false))
   )
 
@@ -313,7 +313,7 @@
   ; complement
   (is (= (-> m/initial-machine-state
              (assoc :sending-value 0.2000000M)
-             (assoc :transfer-complement :true)
+             (assoc :transfer-complement true)
              (assoc :transfer-shift 0)
              (m/transfer)
              :transfer-output
@@ -324,7 +324,7 @@
   ; complement and shift x10
   (is (= (-> m/initial-machine-state
              (assoc :sending-value 0.2000000M)
-             (assoc :transfer-complement :true)
+             (assoc :transfer-complement true)
              (assoc :transfer-shift 1)
              (m/transfer)
              :transfer-output
@@ -335,7 +335,7 @@
   ; complement and shift X0.1
   (is (= (-> m/initial-machine-state
              (assoc :sending-value 0.2000000M)
-             (assoc :transfer-complement :true)
+             (assoc :transfer-complement true)
              (assoc :transfer-shift -1)
              (m/transfer)
              :transfer-output
@@ -346,7 +346,7 @@
   ; complement and shift x0.0000001
   (is (= (-> m/initial-machine-state
              (assoc :sending-value 0.0000001M)
-             (assoc :transfer-complement :true)
+             (assoc :transfer-complement true)
              (assoc :transfer-shift -7)
              (m/transfer)
              :transfer-output
