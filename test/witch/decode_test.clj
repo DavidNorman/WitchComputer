@@ -602,6 +602,18 @@
                  (assoc :tapes [[[nil 5.1001M]]])
                  (assoc :pc 1)
                  (d/step))))
+
+  ; Shift cleared afterwards
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 1.2340000M)
+           (assoc-in [:stores 10] 0.0010000M)
+           (assoc :accumulator 1.50000000000000M)
+           (assoc :tapes [[[nil 5.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :transfer-shift)
+         0M))
   )
 
 (deftest divide
@@ -725,6 +737,17 @@
                  (assoc :tapes [[[nil 6.1001M]]])
                  (assoc :pc 1)
                  (d/step))))
+
+  ; Shift cleared afterwards
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 3.0000000M)
+           (assoc :accumulator 1.00000000000000M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :transfer-shift)
+         0M))
   )
 
 (deftest transfer-modulus

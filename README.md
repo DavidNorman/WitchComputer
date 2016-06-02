@@ -120,6 +120,20 @@ this.  The sending dekatrons effectively keep their value unless they are explic
 * Write some other example tapes (calculate bubble sort, quick sort, ...)
 * Introduce punched hole tape format
 
+## Outstanding questions
+
+* Is the shift value (set by 08xxxx) independent of the transfer shift. An example
+  is if we set the shift value, perform a multiply, then do an add.  Does this add
+  have the shift value applied as set explicitly, or does it revert to 'no shift'
+  following a multiplication?
+* Is there a separate transfer unit for the accumulator, or a single one for both
+  the accumulator and the stores?
+* If there is 1 transfer unit, how do digits 8-14 become set when there is a store
+  as the sending value?  For accuracy they should be filled with the sign digit.
+* When the accumulator is the sending address, are its digits 8-14 applied to the
+  transfer unit inputs?  This is important when the shift value is set to +1, where
+  you could get digit 8 affecting the destination store.
+
 ## License
 
 Copyright © 2016 David Norman

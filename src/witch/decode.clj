@@ -159,6 +159,7 @@
 
       (u/apply-while #(exec-multiply-step % a b) $ #(< (:muldiv-step %) 8))
 
+      (assoc $ :transfer-shift 0M)
       (m/advance-pc $)))
 
 
@@ -200,6 +201,7 @@
 
       (u/apply-while #(exec-divide-step % a b acc-sign) $ #(< (:muldiv-step %) 8))
 
+      (assoc $ :transfer-shift 0M)
       (m/advance-pc $))))
 
 (defn exec-transfer-positive-modulus
