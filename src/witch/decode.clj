@@ -53,7 +53,7 @@
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
-    (assoc :transfer-shift 1)
+    (assoc :transfer-shift 0M)
     (m/advance-pc)))
 
 (defn exec-add-and-clear
@@ -82,7 +82,7 @@
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
-    (assoc :transfer-shift 1)
+    (assoc :transfer-shift 0M)
     (m/advance-pc)))
 
 (defn exec-subtract-and-clear
@@ -214,7 +214,7 @@
     (m/read-sending-address a)
     (m/transfer)
     (m/write-address b)
-    (assoc :transfer-shift 1)
+    (assoc :transfer-shift 0M)
     (m/advance-pc)))
 
 ; Control instruction decodes

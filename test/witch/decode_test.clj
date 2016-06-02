@@ -142,7 +142,7 @@
                         (assoc :pc 1)
                         (d/step))))
 
-         ;; With shift
+         ; with shift
          (is (= (->
                   m/initial-machine-state
                   (assoc-in [:stores 0] (n/to-nines 0.1234M))
@@ -153,6 +153,18 @@
                   (d/step)
                   (get-registers [0 10]))
                 [0.1234M 1.235M]))
+
+         ; Shift cleared afterwards
+         (is (= (->
+                  m/initial-machine-state
+                  (assoc-in [:stores 0] (n/to-nines 0.1234M))
+                  (assoc-in [:stores 10] (n/to-nines 0.001M))
+                  (assoc :tapes [[[nil 0.8100] [nil 1.1020M]]])
+                  (assoc :pc 1)
+                  (d/step)
+                  (d/step)
+                  :transfer-shift)
+                0M))
          )
 
 (deftest add-clear
@@ -361,7 +373,7 @@
                  (assoc :pc 1)
                  (d/step))))
 
-  ;; With shift
+  ; with shift
   (is (= (->
            m/initial-machine-state
            (assoc-in [:stores 0] (n/to-nines 0.1234M))
@@ -372,6 +384,18 @@
            (d/step)
            (get-registers [0 10]))
          [(n/to-nines 0.1234M) (n/to-nines -1.233M)]))
+
+  ; Shift cleared afterwards
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] (n/to-nines 0.1234M))
+           (assoc-in [:stores 10] (n/to-nines 0.001M))
+           (assoc :tapes [[[nil 0.8100] [nil 3.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (d/step)
+           :transfer-shift)
+         0M))
   )
 
 (deftest subtract-clear
@@ -726,6 +750,18 @@
            (d/step)
            (get-registers [0 10]))
          [98.7659999M 1.2350000M]))
+
+  ; Shift cleared afterwards
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] (n/to-nines 98.7659999M))
+           (assoc-in [:stores 10] (n/to-nines 0.0010000M))
+           (assoc :tapes [[[nil 0.8100] [nil 7.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (d/step)
+           :transfer-shift)
+         0M))
   )
 
 (deftest set-print-layout
