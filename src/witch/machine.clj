@@ -223,12 +223,15 @@
   [machine-state address]
   ((write-fn address) machine-state address (:transfer-output machine-state)))
 
-(defn clear-sign
-  "Clear the sign digit of a store."
-  [machine-state address]
-  (let [old-val (get (:stores machine-state) (- address 10))
-        new-val (mod old-val 10M)]
-    (assoc-in machine-state [:stores (- address 10)] new-val)))
+(defn set-sign
+  "Set the sign digit of a store according to the parameter"
+  [machine-state address positive]
+  (assoc-in machine-state
+            [:stores (- address 10)]
+            (->
+              (get (:stores machine-state) (- address 10))
+              (mod 10M)
+              (+ (if positive 0M 90M)))))
 
 (defn read-register-tube
   "Return the value of a particular register tube."

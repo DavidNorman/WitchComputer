@@ -99,29 +99,32 @@
     (m/write-address b)
     (m/advance-pc)))
 
-(defn exec-multiply-step
-  "One stage of the long multiplication.  In each stage
-  the multiplicand is added (or subtracted) from the accumulator
-  N times, where N is the units digit of the multiplier. The shift
-  is set to the step number.  Following this, the multiplier is
-  shifted one digit to the left."
-  [a b machine-state step]
+(defn- exec-muldiv-apply-summations
+  [machine-state a b f]
   (as->
     machine-state $
 
-    ; First perform the summations
     (assoc $ :sending-clear false)
     (assoc $ :transfer-complement (:muldiv-complement $))
-    (assoc $ :transfer-shift (- step))
+    (assoc $ :transfer-shift (- (:muldiv-step $)))
 
     (u/apply-while
       #(-> %
            (m/read-sending-address a)
            (m/transfer)
            (m/write-address 9)
-           (m/inc-dec-register-tube b step (:muldiv-complement %)))
+           (m/inc-dec-register-tube b (:muldiv-step $) (:muldiv-complement %)))
       $
-      #(not= (m/read-register-tube % b step) 0M))
+      f)))
+
+(defn- exec-multiply-step
+  [machine-state a b f]
+
+  (as->
+    machine-state $
+
+    ; First perform the summations
+    (exec-muldiv-apply-summations $ a b f)
 
     ; Step back one place if stepping the register forwards
     (if (:muldiv-complement $)
@@ -131,7 +134,9 @@
         (m/read-sending-address a)
         (m/transfer)
         (m/write-address 9))
-      $)))
+      $)
+
+    (update $ :muldiv-step inc)))
 
 (defn exec-multiply
   "Perform long multiplication on 2 values into the accumulator."
@@ -143,14 +148,43 @@
 
   (as->
       machine-state $
-      (assoc $ :muldiv-complement
-               (n/negative? (:sending-value (m/read-sending-address machine-state b))))
-      (m/clear-sign $ b)
+      (m/read-sending-address $ b)
+      (assoc $ :muldiv-complement (n/negative? (:sending-value $)))
+      (m/set-sign $ b true)
 
-      (reduce (partial exec-multiply-step a b) $ (range 8))
+      (assoc $ :muldiv-step 0)
+      (u/apply-while
+        #(exec-multiply-step
+          % a b
+          (fn [m] (not= (m/read-register-tube m b (:muldiv-step m)) 0M)))
+        $
+        #(< (:muldiv-step %) 8))
+
       (m/advance-pc $)))
 
-; TODO divide properly
+
+(defn- exec-divide-step
+  [machine-state a b f]
+
+  (as->
+    machine-state $
+
+    ; First perform the summations
+    (exec-muldiv-apply-summations $ a b f)
+
+    ; Step back one place
+    (assoc $ :transfer-complement (not (:muldiv-complement $)))
+    (m/read-sending-address $ a)
+    (m/transfer $)
+    (m/write-address $ 9)
+
+    ; Correct register if going up
+    (if (:muldiv-complement $)
+      (m/inc-dec-register-tube $ b (:muldiv-step $) (not (:muldiv-complement $)))
+      $)
+
+    (update $ :muldiv-step inc)))
+
 (defn exec-divide
   [machine-state a b]
   (when (or (invalid-stores a b)
@@ -173,14 +207,22 @@
   ; the correct starting point for a complement means that the necessary correction
   ; has already been made.
 
-  (as->
-    machine-state $
-    (assoc $ :muldiv-complement (=
-                                  (n/sign (:sending-value (m/read-sending-address machine-state a)))
-                                  (n/sign (:sending-value (m/read-sending-address machine-state 9)))))
+  (let [snd-sign (n/sign (:sending-value (m/read-sending-address machine-state a)))
+        acc-sign (n/sign (:sending-value (m/read-sending-address machine-state 9)))]
+    (as->
+      machine-state $
+      (assoc $ :muldiv-complement (= snd-sign acc-sign))
+      (m/set-sign $ b (= snd-sign acc-sign))
 
-    (m/read-sending-address $ a)
-    (m/advance-pc $)))
+      (assoc $ :muldiv-step 0)
+      (u/apply-while
+        #(exec-divide-step
+          % a b
+          (fn [m] (= acc-sign (n/sign (:sending-value (m/read-sending-address m 9))))))
+        $
+        #(< (:muldiv-step %) 8))
+
+      (m/advance-pc $))))
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]

@@ -8,6 +8,4 @@
 
 (defn xor
   [& args]
-  (if (= 1 (apply bit-xor (map #(if % 1 0) args)))
-    true
-    false))
+  ([false true] (apply bit-xor (map #(if % 1 0) args))))

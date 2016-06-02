@@ -580,50 +580,127 @@
                  (d/step))))
   )
 
-#_(deftest divide
+(deftest divide
 
+  ; Exact divide of negative numbers
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 2.0M)
-           (assoc :accumulator 6.0M)
+           (assoc-in [:stores 0] 97.9999999M)
+           (assoc :accumulator 92.99999999999999M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [2.0M 3.0M]))
+         [97.9999999M 3.5000000M]))
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 2.0M)
-           (assoc :accumulator 7.0M)
+           (assoc-in [:stores 0] 97.9999999M)
+           (assoc :accumulator 92.99999999999999M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         99.99999999999999M))
+
+  ; Exact divide of negative by positive numbers
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 2.0000000M)
+           (assoc :accumulator 92.99999999999999M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [2.0M 3.5M]))
+         [2.0000000M 96.4999999M]))
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] -2.0M)
-           (assoc :accumulator 7.0M)
+           (assoc-in [:stores 0] 2.0000000M)
+           (assoc :accumulator 92.99999999999999M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         99.99999999999999M))
+
+  ; Exact divide of positive numbers. leaves least significant digit error
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 2.0000000M)
+           (assoc :accumulator 6.00000000000000M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [-2.0M -3.5M]))
+         [2.0000000M 2.9999999M]))
 
   (is (= (->
            m/initial-machine-state
-           (assoc-in [:stores 0] 2.0M)
-           (assoc :accumulator -7.0M)
+           (assoc-in [:stores 0] 2.0000000M)
+           (assoc :accumulator 6.00000000000000M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         0.000000200000000M))
+
+  ; Exact divide of positive by negative numbers. leaves least significant digit error
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 97.9999999M)
+           (assoc :accumulator 6.00000000000000M)
            (assoc :tapes [[[nil 6.1020M]]])
            (assoc :pc 1)
            (d/step)
            (get-registers [0 10]))
-         [2.0M -3.5M]))
+         [97.9999999M 97.0000000M]))
 
-  ;TODO remainder in accumulator
-  ;TODO positive zero dividend is an error
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 97.9999999M)
+           (assoc :accumulator 6.00000000000000M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         0.000000200000000M))
+
+  ; Remainder left in accumulator
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 3.0000000M)
+           (assoc :accumulator 1.00000000000000M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           (get-registers [10]))
+         [0.3333333M]))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc-in [:stores 0] 3.0000000M)
+           (assoc :accumulator 1.00000000000000M)
+           (assoc :tapes [[[nil 6.1020M]]])
+           (assoc :pc 1)
+           (d/step)
+           :accumulator)
+         0.000000100000000M))
+
+  ; Addresses must not be in group 00-09
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc :tapes [[[nil 6.0020M]]])
+                 (assoc :pc 1)
+                 (d/step))))
+
+  (is (thrown? ExceptionInfo
+               (->
+                 m/initial-machine-state
+                 (assoc :tapes [[[nil 6.1001M]]])
+                 (assoc :pc 1)
+                 (d/step))))
   )
 
 (deftest transfer-modulus

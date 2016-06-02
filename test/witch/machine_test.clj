@@ -523,6 +523,35 @@
          [91.0000009M 7]))
   )
 
+(deftest set-sign
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 90.0000000M)
+             (m/set-sign 10 true)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [0.0000000M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 90.0000000M)
+             (m/set-sign 10 false)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [90.0000000M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 0.0000000M)
+             (m/set-sign 10 true)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [0.0000000M 7]))
+
+  (is (= (-> m/initial-machine-state
+             (assoc-in [:stores 0] 0.0000000M)
+             (m/set-sign 10 false)
+             (get-in [:stores 0])
+             (h/value-and-scale))
+         [90.0000000M 7]))
+  )
 
 (deftest advance-pc
 
