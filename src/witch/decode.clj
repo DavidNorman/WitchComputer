@@ -113,28 +113,32 @@
            (m/read-sending-address a)
            (m/transfer)
            (m/write-address 9)
-           (m/inc-dec-register-tube b (:muldiv-step $) (:muldiv-complement %)))
+           (m/inc-dec-register-tube b (:muldiv-step %) (:muldiv-complement %)))
       $
       f)))
 
+(defn- exec-muldiv-step-back
+  [machine-state a]
+  (->
+    machine-state
+    (assoc :transfer-complement (not (:muldiv-complement machine-state)))
+    (m/read-sending-address a)
+    (m/transfer)
+    (m/write-address 9)))
+
 (defn- exec-multiply-step
-  [machine-state a b f]
+  [machine-state a b]
 
   (as->
     machine-state $
 
     ; First perform the summations
-    (exec-muldiv-apply-summations $ a b f)
+    (exec-muldiv-apply-summations
+      $ a b
+      #(not= (m/read-register-tube % b (:muldiv-step %)) 0M))
 
     ; Step back one place if stepping the register forwards
-    (if (:muldiv-complement $)
-      (->
-        $
-        (assoc :transfer-complement (not (:muldiv-complement $)))
-        (m/read-sending-address a)
-        (m/transfer)
-        (m/write-address 9))
-      $)
+    (if (:muldiv-complement $) (exec-muldiv-step-back $ a) $)
 
     (update $ :muldiv-step inc)))
 
@@ -151,32 +155,26 @@
       (m/read-sending-address $ b)
       (assoc $ :muldiv-complement (n/negative? (:sending-value $)))
       (m/set-sign $ b true)
-
       (assoc $ :muldiv-step 0)
-      (u/apply-while
-        #(exec-multiply-step
-          % a b
-          (fn [m] (not= (m/read-register-tube m b (:muldiv-step m)) 0M)))
-        $
-        #(< (:muldiv-step %) 8))
+
+      (u/apply-while #(exec-multiply-step % a b) $ #(< (:muldiv-step %) 8))
 
       (m/advance-pc $)))
 
 
 (defn- exec-divide-step
-  [machine-state a b f]
+  [machine-state a b acc-sign]
 
   (as->
     machine-state $
 
-    ; First perform the summations
-    (exec-muldiv-apply-summations $ a b f)
+    ; First perform the summations and step back
+    (exec-muldiv-apply-summations
+      $ a b
+      #(= acc-sign (n/sign (:sending-value (m/read-sending-address % 9)))))
 
-    ; Step back one place
-    (assoc $ :transfer-complement (not (:muldiv-complement $)))
-    (m/read-sending-address $ a)
-    (m/transfer $)
-    (m/write-address $ 9)
+    ; Step back
+    (exec-muldiv-step-back $ a)
 
     ; Correct register if going up
     (if (:muldiv-complement $)
@@ -192,35 +190,15 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  ; Division is performed by a sequence of the same form, i.e., multiple transfer,
-  ; single transfer, operation of the shift; the quotient is built up digit by digit
-  ; in the register by moving the discharge one step forward or backward in the
-  ; register for each transfer. For a divisor and dividend of the same sign, the
-  ; divisor is subtracted from the dividend and the register moved forward until
-  ; the sign of the dividend changes, when the pulse generator gives the finish
-  ; signal. At this point one subtraction too many has been performed, and this is
-  ; corrected by making one addition and moving the register back one step, When
-  ; the divisor and dividend are of opposite sign, the multiple transfers are
-  ; additions, with the register being moved back step by step and the single transfer
-  ; is a subtraction. In this case it is not necessary to move on the register during
-  ; the single transfer, since the fact that it has started from 0 rather than 9,
-  ; the correct starting point for a complement means that the necessary correction
-  ; has already been made.
-
   (let [snd-sign (n/sign (:sending-value (m/read-sending-address machine-state a)))
         acc-sign (n/sign (:sending-value (m/read-sending-address machine-state 9)))]
     (as->
       machine-state $
       (assoc $ :muldiv-complement (= snd-sign acc-sign))
       (m/set-sign $ b (= snd-sign acc-sign))
-
       (assoc $ :muldiv-step 0)
-      (u/apply-while
-        #(exec-divide-step
-          % a b
-          (fn [m] (= acc-sign (n/sign (:sending-value (m/read-sending-address m 9))))))
-        $
-        #(< (:muldiv-step %) 8))
+
+      (u/apply-while #(exec-divide-step % a b acc-sign) $ #(< (:muldiv-step %) 8))
 
       (m/advance-pc $))))
 
