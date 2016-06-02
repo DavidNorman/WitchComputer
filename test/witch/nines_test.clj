@@ -18,6 +18,10 @@
 
   (is (= (h/value-and-scale (n/to-nines -0.0000001M))
          [99.9999998M 7]))
+
+  (is (= (h/value-and-scale (n/to-nines -8.4619573M))
+         [91.5380426M 7]))
+
   )
 
 (deftest from-nines
@@ -32,6 +36,9 @@
 
   (is (= (n/from-nines 99.9999998M)
          -0.0000001M))
+
+  (is (= (n/from-nines 91.5380426M)
+         -8.4619573M))
   )
 
 (deftest round-places

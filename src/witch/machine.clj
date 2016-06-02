@@ -151,6 +151,7 @@
 
 (defn output-printer
   [machine-state _ value]
+
   (pp/cl-format
     true
     (case (:printing-layout machine-state)
@@ -162,12 +163,12 @@
       7 "~12,5@F"
       8 "~12,5@F~%"
       9 "~12,5@F~2%"
-      0 "~5%") value)
+      0 "~5%") (n/from-nines (n/adjust-places value 7)))
   machine-state)
 
 (defn output-perforator
   [machine-state address value]
-  (pp/cl-format true "Perforator (~a) ~a~%" address value)
+  (pp/cl-format true "Perforator (~a) ~a~%" address (n/from-nines (n/adjust-places value 7)))
   machine-state)
 
 (defn output-spare

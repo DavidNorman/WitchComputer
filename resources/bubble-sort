@@ -38,11 +38,13 @@
 10309
 
 ; Setup indirect store operation (TODO: should clear too)
+; @40 = 109xx: store 09 -> [60+10]
 24000
 10240
 10960
 11040
 
+; @41 = 02102
 24100
 10241
 02102
@@ -51,6 +53,7 @@
 02140
 
 
+; print values
 07300
 11001
 
@@ -78,7 +81,10 @@
 ==tape
 
 #1
+; Number of values
 +00015000
+
+; Values
 +00010101
 +02416830
 +57294729

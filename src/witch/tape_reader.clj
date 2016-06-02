@@ -1,5 +1,6 @@
 (ns witch.tape-reader
-  (:require [clojure.pprint :as pp]))
+  (:require [clojure.pprint :as pp]
+            [witch.nines :as n]))
 
 (def block-markers
   {"#0" :block0
@@ -25,8 +26,8 @@
 
     (cond
       m3 (get block-markers m3)
-      m2 (/ (bigdec m2) 10000M)
-      m1 (/ (bigdec m1) 10000000M))))
+      m2 (n/to-nines (/ (bigdec m2) 10000M))
+      m1 (n/to-nines (/ (bigdec m1) 10000000M)))))
 
 (defn process-one-tape
   [s]
