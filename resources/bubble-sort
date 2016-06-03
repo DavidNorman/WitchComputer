@@ -31,49 +31,133 @@
 
 ==tape
 
+;
+; First read in the values to memory
+;
+
 #2
+
+; Setup indirect store operation
+; @40 = 2xx00: clear destination
+24000
+10240
+26000
+
+; @41 = 109xx: store 09 -> destination
+24100
+10241
+10960
+
+; @42 = 02102
+24200
+10242
+02102
+
+; 97 contains loop counter (counting down)
+29700
+12097
+
+; 98 contains increment value for send
+29800
+10298
++00100000
+
+; 99 contains increment value for receive
+29900
+10299
++00001000
+
+#3
 
 ; Read value from tape
 20900
 10309
 
-; Setup indirect store operation (TODO: should clear too)
-; @40 = 109xx: store 09 -> [60+10]
+; Call indirect store
+02140
+
+; Update offsets in indirect store
+19840
+19941
+
+; Decrease and test loop counter for 0
+30297
++00000001
+01197
+
+; Goto block 3
+05203
+
+;
+; Next perform the bubble sort
+;
+
+#4
+
+20900
+
+#5
+
+20900
+
+; Loop from arrray size-1 to 1
+
+; Loop from 0 to end pointer
+
+; Indirect load [x] and [x+1]
+
+; Compare and maybe write [x] and [x+1]
+
+; end inner loop
+
+; end outer loop
+
+
+
+
+;
+; Finally print the sorted list
+;
+
+; Setup indirect store operation
+; @40 = 1xx09: store source -> 09
 24000
 10240
-10960
-11040
+16009
 
 ; @41 = 02102
 24100
 10241
 02102
 
-; Jump to indirect store
+; 97 contains loop counter (counting down)
+29700
+12097
+
+#6
+
+; Clear acc
+20900
+
+; Call indirect load
 02140
 
-
 ; print values
-07300
-11001
-
 07400
 10901
 
-; Increase X
-10210
-+00001000
+; Update offsets in indirect load
+19840
 
-; Test
-20900
-12009
-31009
-10209
--00000001
-01109
+; Decrease and test loop counter for 0
+30297
++00000001
+01197
 
-; Goto block 2
-05202
+; Goto block 6
+05206
+
+
 
 ; Stop
 00100
@@ -82,7 +166,7 @@
 
 #1
 ; Number of values
-+00015000
++00000015
 
 ; Values
 +00010101

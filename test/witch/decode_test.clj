@@ -945,19 +945,39 @@
 
   (is (= (->
            m/initial-machine-state
-           (assoc :tapes [[[nil 0.0000M]]])
+           (assoc :sign-test false)
+           (assoc :tapes [[[nil 0.2140]]])
            (assoc :pc 1)
            (d/step)
-           :finished)
-         false))
+           :pc)
+         40))
 
   (is (= (->
            m/initial-machine-state
-           (assoc :tapes [[[nil 0.0000M]]])
+           (assoc :sign-test true)
+           (assoc :tapes [[[nil 0.2140]]])
            (assoc :pc 1)
            (d/step)
-           :finished)
-         false))
+           :pc)
+         40))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test false)
+           (assoc :tapes [[[nil 0.2240]]])
+           (assoc :pc 1)
+           (d/step)
+           :pc)
+         1))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test true)
+           (assoc :tapes [[[nil 0.2240]]])
+           (assoc :pc 1)
+           (d/step)
+           :pc)
+         40))
   )
 
 (deftest sign-examination

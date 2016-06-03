@@ -248,7 +248,7 @@
 
 (defn exec-transfer-control
   [machine-state a b]
-  (if (or (= 1 (quot a 10)) (:sign-test machine-state))
+  (if (or (= 1 (rem a 10)) (:sign-test machine-state))
     (assoc machine-state :pc b)
     machine-state))
 
@@ -326,6 +326,7 @@
   [machine-state]
   (as->
     machine-state $
+    (assoc $ :sending-clear false)
     (m/read-sending-address $ (:pc $))
     (decode $ (:sending-value $))))
 
