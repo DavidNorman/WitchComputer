@@ -46,7 +46,24 @@
 
 (defn dump-machine-state
   [machine-state]
-  (pp/cl-format true "~a~%" machine-state)
+  (pp/cl-format true "Accumulator: ~A~%"
+                (:accumulator machine-state))
+  (pp/cl-format true "Program counter: ~A~%"
+                (:pc machine-state))
+  (pp/cl-format true "Stores:~%")
+  (doseq [s (partition 10 (:stores machine-state))]
+    (pp/cl-format true "   ~{~7,2$~^, ~}~%" s))
+
+  (pp/cl-format true "Transfer~%  Sending value: ~A  Transfer Ouptut: ~A~%  Complement: ~A  Shift: ~A  Clear: ~A~%"
+                (:sending-value machine-state)
+                (:transfer-output machine-state)
+                (:transfer-complement machine-state)
+                (:transfer-shift machine-state)
+                (:sending-clear machine-state))
+
+  (pp/cl-format true "Printing layout: ~A~%"
+                (:printing-layout machine-state))
+
   machine-state)
 
 ; Transfer unit

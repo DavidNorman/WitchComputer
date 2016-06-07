@@ -6,22 +6,32 @@
 ; The count should be shifter to digit -4.
 
 ; Variables
-; 10 - a counter for reading the values (shifted to digit -4)
-; 20 - the actual count of numbers (shifted to digit -4)
-; 40 - temp
-; 41 - temp
+; 10 - temp
+; 11 - temp
+; 20 - the actual count of numbers
+; 40 - location of program
 ; 60 - the address of the first element of the number array
+; 97 - temp
+; 98 - the constant +00100000
+; 99 - the constant +00001000
+
 ==tape
 
 #1
 
-; Clear stores
-20900
-21000
-22000
+; 98 contains increment value for send
+29800
+10198
++00100000
+
+; 99 contains increment value for receive
+29900
+10199
++00001000
 
 ; Read the number of values
 03301
+22000
 10320
 
 ; Transfer to other tape
@@ -38,6 +48,8 @@
 #2
 
 ; Setup indirect store operation
+; assumption: 09 contains data
+
 ; @40 = 2xx00: clear destination
 24000
 10240
@@ -48,7 +60,7 @@
 10241
 10960
 
-; @42 = 02102
+; @42 = 02102: return to main program
 24200
 10242
 02102
@@ -56,16 +68,6 @@
 ; 97 contains loop counter (counting down)
 29700
 12097
-
-; 98 contains increment value for send
-29800
-10298
-+00100000
-
-; 99 contains increment value for receive
-29900
-10299
-+00001000
 
 #3
 
@@ -92,32 +94,90 @@
 ; Next perform the bubble sort
 ;
 
+; 97 contains (array-size-1) -> 1 loop counter
+29700
+12097
+30297
++00000001
+
 #4
 
-20900
+; 11 contains [97] -> 1 loop counter
+21100
+19711
+
+
+; Set up indirect loads / compare / swap
+; assumption: 09 is clear
+
+; @40 = 1xx09: indirect load array[n]
+24000
+10240
+16009
+
+; @41 = 3yy09: subtract so 09 = array[n] - array[n+1]
+24100
+10241
+36109
+
+; @42 = 01109: compare negative
+24200
+10242
+01109
+
+; @43 = 02202: conditional return to main program
+24300
+10243
+02202
+
+; @44 = 109xx: new array[n] = array[n] + (array[n+1] - array[n])
+24400
+10244
+10960
+
+; @45 = 309yy: new array[n+1] = array[n+1] - (array[n+1] - array[n])
+24500
+10245
+30961
+
+; @46 = 02102: return to main program
+24600
+10246
+02102
+
 
 #5
 
+; Clear accumulator and call compare and swap
 20900
+02140
 
-; Loop from arrray size-1 to 1
-
-; Loop from 0 to end pointer
-
-; Indirect load [x] and [x+1]
-
-; Compare and maybe write [x] and [x+1]
+; Update offsets in compare and swap code
+19840
+19841
+19944
+19945
 
 ; end inner loop
+30211
++00000001
+01111
+05205
 
 ; end outer loop
-
+30297
++00000001
+01197
+05204
 
 
 
 ;
 ; Finally print the sorted list
 ;
+
+; Setup print format
+07400
 
 ; Setup indirect store operation
 ; @40 = 1xx09: store source -> 09
@@ -143,7 +203,6 @@
 02140
 
 ; print values
-07400
 10901
 
 ; Update offsets in indirect load
@@ -153,8 +212,6 @@
 30297
 +00000001
 01197
-
-; Goto block 6
 05206
 
 
@@ -171,16 +228,16 @@
 ; Values
 +00010101
 +02416830
-+57294729
--84619573
++47294729
+-34619573
 +45710572
--57372957
+-27372957
 -00482750
 +01414355
 -00572659
 +00000001
--99999991
-+53446263
+-49999991
++43446263
 -00572658
--98362986
+-28362986
 -00066326
