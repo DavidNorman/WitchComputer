@@ -5,26 +5,22 @@ More information about it can be found at http://www.computerconservationsociety
 
 In developing this simulator, I have been particularly influenced by the users manual, the table
 of order codes, the Electronic Engineering article describing the arithmetic units, and the
-example programs.
+example programs.  All of these resources can be found liked from the CCS site linked above.
 
 I also corresponded with Delwyn Holroyd, and would not have been able to figure out the
 details of some of the design without his helpful replies.
 
-I started this as a CLojure programming exercise.  I chose the WITCH machine specifically
+I started this as a Clojure programming exercise.  I chose the WITCH machine specifically
 because my parents learned to program this machine while studying at Wolverhampton.
 
 
 ## Usage
 
-If a standalone JAR file has been created, it can be run with the following
-command line.
-
-    $ java -jar witch-0.1.0-standalone.jar <tape-file>
-
-Alternatively, download the Leiningen environment from http://leiningen.org
-and then run the code using the following command line.
+Download the Leiningen environment from http://leiningen.org and then run the code
+using the following command line from the root of the repository sandbox.
 
     $ lein run <tape-file>
+    
 
 ## Command line options
 
