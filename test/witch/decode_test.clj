@@ -946,7 +946,7 @@
   (is (= (->
            m/initial-machine-state
            (assoc :sign-test false)
-           (assoc :tapes [[[nil 0.2140]]])
+           (assoc :tapes [[[nil 0.2140M]]])
            (assoc :pc 1)
            (d/step)
            :pc)
@@ -955,7 +955,7 @@
   (is (= (->
            m/initial-machine-state
            (assoc :sign-test true)
-           (assoc :tapes [[[nil 0.2140]]])
+           (assoc :tapes [[[nil 0.2140M]]])
            (assoc :pc 1)
            (d/step)
            :pc)
@@ -964,7 +964,7 @@
   (is (= (->
            m/initial-machine-state
            (assoc :sign-test false)
-           (assoc :tapes [[[nil 0.2240]]])
+           (assoc :tapes [[[nil 0.2240M]]])
            (assoc :pc 1)
            (d/step)
            :pc)
@@ -973,11 +973,53 @@
   (is (= (->
            m/initial-machine-state
            (assoc :sign-test true)
-           (assoc :tapes [[[nil 0.2240]]])
+           (assoc :tapes [[[nil 0.2240M]]])
            (assoc :pc 1)
            (d/step)
            :pc)
          40))
+
+
+
+
+
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test false)
+           (assoc-in [:stores 0] 0.2140M)
+           (assoc :pc 10)
+           (d/step)
+           :pc)
+         40))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test true)
+           (assoc-in [:stores 0] 0.2140M)
+           (assoc :pc 10)
+           (d/step)
+           :pc)
+         40))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test false)
+           (assoc-in [:stores 0] 0.2240M)
+           (assoc :pc 10)
+           (d/step)
+           :pc)
+         11))
+
+  (is (= (->
+           m/initial-machine-state
+           (assoc :sign-test true)
+           (assoc-in [:stores 0] 0.2240M)
+           (assoc :pc 10)
+           (d/step)
+           :pc)
+         40))
+
   )
 
 (deftest sign-examination

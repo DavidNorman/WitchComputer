@@ -130,15 +130,15 @@
 10243
 02202
 
-; @44 = 109xx: new array[n] = array[n] + (array[n+1] - array[n])
+; @44 = 309xx: new array[n] = array[n] - (array[n] - array[n+1])
 24400
 10244
-10960
+30960
 
-; @45 = 309yy: new array[n+1] = array[n+1] - (array[n+1] - array[n])
+; @45 = 109yy: new array[n+1] = array[n+1] + (array[n] - array[n+1])
 24500
 10245
-30961
+10961
 
 ; @46 = 02102: return to main program
 24600

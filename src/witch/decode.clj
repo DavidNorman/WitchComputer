@@ -250,7 +250,7 @@
   [machine-state a b]
   (if (or (= 1 (rem a 10)) (:sign-test machine-state))
     (assoc machine-state :pc b)
-    machine-state))
+    (m/advance-pc machine-state)))
 
 (defn exec-search-tape
   [machine-state a b]
