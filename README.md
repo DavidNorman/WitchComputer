@@ -20,11 +20,7 @@ Download the Leiningen environment from http://leiningen.org and then run the co
 using the following command line from the root of the repository sandbox.
 
     $ lein run <tape-file>
-    
-For example
 
-    $ lein run resources/demo-1
-    
 
 ## Command line options
 
