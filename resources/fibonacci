@@ -1,0 +1,63 @@
+; Produces a table of the fibonacci sequence (20 values)
+
+; Constants/Variables
+;
+; 10 = X(n) (least significant digit form)
+; 20 = X(n+1) (least significant digit form)
+; 30 = tmp
+; 40 = count (down from 20)
+
+==tape
+
+#1
+
+; Load data
+21000
+10110
++00000001
+22000
+10120
++00000001
+23000
+24000
+10140
++00000020
+
+
+; Transfer to other tape
+03202
+02102
+
+
+==tape
+
+#2
+
+; Print X(n)
+07400
+11001
+
+; Sum X(n) + X(n+1) -> tmp
+11030
+12030
+
+; Clear X(n)
+21000
+
+; Move X(n+1) -> X(n)
+22010
+
+; Move tmp -> X(n+1)
+23020
+
+; Decrease counter
+10240
+-00000001
+
+; Test for negative count
+01140
+
+; Search for block 2 again or stop
+05202
+00100
+
