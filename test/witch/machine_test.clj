@@ -222,6 +222,13 @@
              (m/search-tape 1 :block1)
              (get-in [:tapes 0]))
          [[:block1 4M] [:block1 5M] [:block2 6M] [nil 1M] [nil 2M] [nil 3M]]))
+
+  ; Find the next block2 marker
+  #_(is (= (-> m/initial-machine-state
+             (assoc :tapes [[[nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
+             (m/search-tape 1 :block2)
+             (get-in [:tapes 0]))
+         [[:block2 6M] [nil 1M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M]]))
   )
 
 (deftest read-from-tape

@@ -256,7 +256,7 @@
   [machine-state a b]
   (->
     machine-state
-    (m/search-tape (mod a 10) (get block-keywords b))
+    (m/search-tape b (get block-keywords (mod a 10)))
     (m/advance-pc)))
 
 (defn exec-search-tape-conditional
@@ -264,7 +264,7 @@
   (as->
     machine-state $
     (if (:sign-test $)
-        (m/search-tape $ (mod a 10) (get block-keywords b))
+        (m/search-tape $ b (get block-keywords (mod a 10)))
         $)
     (m/advance-pc $)))
 

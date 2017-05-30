@@ -904,36 +904,44 @@
              (get-in [:tapes 0]))
          [[:block1 4M] [:block1 5M] [:block2 6M] [nil 0.3101M] [nil 2M] [nil 3M]]))
 
-  ; Find the next block1 marker in another tape
+  ; Find the next block2 marker in executing tape
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[[nil 0.3203M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
+             (assoc :tapes [[[nil 0.3201M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]])
+             (assoc :pc 1)
+             (d/step)
+             (get-in [:tapes 0]))
+         [[:block2 6M] [nil 0.3201M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M]]))
+
+  ; Find the next block3 marker in another tape
+  (is (= (-> m/initial-machine-state
+             (assoc :tapes [[[nil 0.3302M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
                             [[nil 1M] [nil 2M] [:block3 3M]]])
              (assoc :pc 1)
              (d/step)
              :tapes)
-         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.3203M]]
+         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.3302M]]
           [[:block3 3M] [nil 1M] [nil 2M]]]))
 
   ; Conditional positive
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[[nil 0.5203M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
+             (assoc :tapes [[[nil 0.5302M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
                             [[nil 1M] [nil 2M] [:block3 3M]]])
              (assoc :sign-test true)
              (assoc :pc 1)
              (d/step)
              :tapes)
-         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.5203M]]
+         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.5302M]]
           [[:block3 3M] [nil 1M] [nil 2M]]]))
 
   ; Conditional negative
   (is (= (-> m/initial-machine-state
-             (assoc :tapes [[[nil 0.5203M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
+             (assoc :tapes [[[nil 0.5302M] [nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M]]
                             [[nil 1M] [nil 2M] [:block3 3M]]])
              (assoc :sign-test false)
              (assoc :pc 1)
              (d/step)
              :tapes)
-         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.5203M]]
+         [[[nil 2M] [nil 3M] [:block1 4M] [:block1 5M] [:block2 6M] [nil 0.5302M]]
           [[nil 1M] [nil 2M] [:block3 3M]]]))
   )
 

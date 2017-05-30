@@ -51,13 +51,13 @@
 30250
 +00000000
 01250
-05204
+05402
 
 ; abs(x)-3 is positive if the digits differ by more than 2
 30250
 +20000000
 01150
-05204
+05402
 
 ; Print
 07300
@@ -80,7 +80,7 @@
 01140
 
 ; Conditional search for block 3 again
-05203
+05302
 
 ; Increase N1
 24000
