@@ -123,7 +123,7 @@
   [machine-state _]
   (->
     machine-state
-    (assoc :sending-value (rand-int 2))))
+    (assoc :sending-value (bigdec (rand-int 2)))))
 
 (defn input-tape
   [machine-state address]
