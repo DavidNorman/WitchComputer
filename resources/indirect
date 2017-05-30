@@ -1,0 +1,207 @@
+; Useful routines for indirect loading and storing
+
+; There are 2 in-store programs, one for load and one for store.
+; Each takes the address in store 93 and the data is read or
+; written out of store 94.  To activate the indirect load/store
+; you search for block #1 (load) or block #2 (store) on the
+; special stored routine tape (tape 3 here) and transfer execution
+; there. When complete, control will be transferred back to tape 2.
+
+; The programs require the block of memory between 90-99 to contain
+; the in-store code.
+
+; Variables
+; 93 - address for load/store
+; 94 - data for load/store
+; 95 - the beginning of the load program
+; 97 - the beginning of the store program
+
+; tape 1
+==tape
+
+#1
+
+; Clear program space
+
+29300
+29400
+29500
+29600
+29700
+29800
+29900
+
+; Setup indirect load operation
+
+; 1xx09: store source -> 09
+10195
+10094
+
+; 02102: return to main program
+10196
+02102
+
+; Setup indirect store operation
+
+; 2xx00: clear destination
+10197
+20000
+
+; 109xx: store 94 -> destination (clear 94)
+10198
+29400
+
+; 02102: return to main program
+10199
+02102
+
+
+; Transfer to main tape
+03102
+02102
+
+
+; tape 2
+==tape
+
+#1
+
+; Set up some dummy data
+22000
+10220
++00000006
+22100
+10221
++00000060
+
+; Set up indirect load from 20
+29300
+10293
++00000020
+
+; Call indirect load
+03107
+02107
+
+; Print loaded value
+07400
+19401
+
+; Set up indirect load from 21
+29300
+10293
++00000021
+
+; Call indirect load
+03107
+02107
+
+; Print loaded value
+07400
+19401
+
+; Load some dummy data to 94
+29400
+10294
++12345678
+
+; Setup indirect store to 22
+29300
+10293
++00000022
+
+; Call indirect store
+03207
+02107
+
+; Print 22
+12201
+
+; Stop
+00100
+
+
+; tape 3
+==tape
+00100
+
+
+; tape 4
+==tape
+00100
+
+
+; tape 5
+==tape
+00100
+
+
+; tape 6
+==tape
+00100
+
+
+; tape 7
+==tape
+
+; Indirect load entry
+; inputs:
+;   93 contains dst address
+; outputs:
+;   94 contains data
+;   93 is unchanged
+;   09 is modified
+#1
+
+; Clear store instruction and add basic opcode back in
+29500
+10795
+10094
+
+; Add in source by shifting via 09
+20900
+08500
+19309
+20895
+
+; Clear the destination data
+29400
+
+; Call in-store code
+02195
+
+; Indirect store entry
+; inputs:
+;   93 contains dst address
+;   94 contains data
+; outputs:
+;   93 is unchanged
+;   94 is unchanged
+;   09 is modified
+#2
+
+; Set up clear and move opcodes
+29700
+10797
+20000
+
+29800
+10798
+29400
+
+; Add in clear opcode address
+20900
+08500
+19309
+10897
+
+; Add in move opcode address
+20900
+08700
+19309
+10898
+
+; Call in-store code
+02197
+
+
