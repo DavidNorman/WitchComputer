@@ -1,0 +1,291 @@
+; Generate pascal's triangle
+
+; Includes the use of the indirect load/store code
+
+; Variables
+; 10 - current row of the triangle
+; 11 - count down across the row
+; 12 - temporary space
+; 20 - beginning of the array space for the triangle
+; 80 - constant 1
+; 93 - address for load/store
+; 94 - data for load/store
+; 95 - the beginning of the load program
+; 97 - the beginning of the store program
+
+; tape 1
+==tape
+
+#1
+
+; Clear all space
+22000
+22100
+22200
+22300
+22400
+22500
+22600
+22700
+22800
+22900
+23000
+23100
+23200
+23300
+23400
+23500
+23600
+23700
+23800
+23900
+
+21000
+10110
++00000001
+
+28000
+10180
++00000001
+
+21000
+10110
++00000001
+
+22000
+10120
++00000001
+
+; Setup indirect load/store
+
+; Clear program space
+
+29300
+29400
+29500
+29600
+29700
+29800
+29900
+
+; Setup indirect load operation
+
+; 1xx09: store source -> 09
+10195
+10094
+
+; 02102: return to main program
+10196
+02102
+
+; Setup indirect store operation
+
+; 2xx00: clear destination
+10197
+20000
+
+; 109xx: store 94 -> destination (clear 94)
+10198
+29400
+
+; 02102: return to main program
+10199
+02102
+
+
+; Transfer to main tape
+03102
+02102
+
+;==================================================
+
+; tape 2
+==tape
+
+#1
+
+07400
+
+#2
+
+; Load down counter (n) with row
+21100
+20900
+11009
+10911
+
+#3
+
+; Count down adding a[n] + a[n-1] (until counter == 0)
+; - load a[n]
+29300
+10293
++00000020
+11193
+
+; Call load
+03107
+02107
+
+29412
+
+; - load a[n-1]
+30293
++00000001
+
+; Call load
+03107
+02107
+
+; Sum
+29412
+
+; Store
+10293
++00000001
+21294
+
+03207
+02107
+
+
+; subtract one from count down and loop if not zero
+38011
+01111
+05302
+
+; Print row
+21100
+20900
+11009
+10911
+07300
+
+#4
+
+; load value and print
+29400
+
+29300
+11193
+10293
++00000020
+
+03107
+02107
+
+19401
+
+; Print loop end
+38011
+01111
+05402
+
+; Print value at 20
+12001
+
+; Add one to row counter
+18010
+
+; Print blanks between each row of triangle
+07000
+11001
+
+; Repeat until row counter == 20
+20900
+10209
++00000021
+31009
+
+01109
+05202
+
+; Stop
+00100
+
+;==================================================
+
+; tape 3
+==tape
+00100
+
+
+; tape 4
+==tape
+00100
+
+
+; tape 5
+==tape
+00100
+
+
+; tape 6
+==tape
+00100
+
+
+; tape 7
+==tape
+
+; Indirect load entry
+; inputs:
+;   93 contains dst address
+; outputs:
+;   94 contains data
+;   93 is unchanged
+;   09 is modified
+#1
+
+; Clear store instruction and add basic opcode back in
+29500
+10795
+10094
+
+; Add in source by shifting via 09
+20900
+08500
+19309
+20895
+
+; Clear the destination data
+29400
+
+; Call in-store code
+02195
+
+; Indirect store entry
+; inputs:
+;   93 contains dst address
+;   94 contains data
+; outputs:
+;   93 is unchanged
+;   94 is unchanged
+;   09 is modified
+#2
+
+; Set up clear and move opcodes
+29700
+10797
+20000
+
+29800
+10798
+29400
+
+; Add in clear opcode address
+20900
+08500
+19309
+10897
+
+; Add in move opcode address
+20900
+08700
+19309
+10898
+
+; Call in-store code
+02197
+
+
