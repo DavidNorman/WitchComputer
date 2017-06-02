@@ -129,6 +129,9 @@ this.  The sending dekatrons effectively keep their value unless they are explic
 * When the accumulator is the sending address, are its digits 8-14 applied to the
   transfer unit inputs?  This is important when the shift value is set to +1, where
   you could get digit 8 affecting the destination store.
+* The manual states that transfers from 09->00 and 08->00 cannot use the
+  add-and-clear or subtract-and-clear features, and yet this instruction turns up
+  in the demonstration programs.  Can 20900 be used to clear the accumualtor?
 
 ## License
 
