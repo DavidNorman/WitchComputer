@@ -29,10 +29,17 @@
   "Search the tape for a given block marker.  Leaves the tape ready to read the
   order or value following the marker."
   [machine-state tape-num marker]
-  (loop [tape (get-in machine-state [:tapes (dec tape-num)])]
+  (let [tape (get-in machine-state [:tapes (dec tape-num)])]
+    (when-not (seq tape)
+      (throw (ex-info "Tape not available"
+                      (assoc machine-state :tape-num tape-num))))
+    (when-not (some #(= marker (first %)) tape)
+      (throw (ex-info (str "Block marker not found: " marker)
+                      (assoc machine-state :tape-num tape-num :marker marker))))
+    (loop [tape tape]
     (if-not (= marker (first (first tape)))
       (recur (rotate tape))
-      (assoc-in machine-state [:tapes (dec tape-num)] tape))))
+      (assoc-in machine-state [:tapes (dec tape-num)] tape)))))
 
 (defn read-tape
   [machine-state tape-num]
@@ -272,5 +279,4 @@
   [machine-state]
   (let [pc (:pc machine-state)]
     (assoc machine-state :pc (if (>= pc 10) (inc pc) pc))))
-
 

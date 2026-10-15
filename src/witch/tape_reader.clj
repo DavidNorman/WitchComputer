@@ -47,12 +47,56 @@
 
 (defn read-tapes
   [args]
-  (when-let [filename (first args)]
-    (pp/cl-format true "Loading tapes ~a~%" filename)
-    (into [] (->>
-               (clojure.java.io/reader filename)
-               (line-seq)
-               (remove comment-or-blank?)
-               (partition-by (partial = "==tape"))
-               (remove (partial = '("==tape")))
-               (map process-one-tape)))))
+  (when (seq args)
+    (into []
+          (mapcat
+            (fn [filename]
+              (pp/cl-format true "Loading tapes ~a~%" filename)
+              (with-open [reader (clojure.java.io/reader filename)]
+                (let [lines (doall
+                              (->> (line-seq reader)
+                                   (map-indexed (fn [index text]
+                                                  {:line (inc index) :text text}))
+                                   (remove #(comment-or-blank? (:text %)))))]
+                  (when-not (= "==tape" (:text (first lines)))
+                    (throw (ex-info "Tape file must begin with ==tape"
+                                    {:filename filename
+                                     :line (:line (first lines))})))
+                  (when-let [empty-marker
+                             (first
+                               (for [[a b] (partition 2 1 lines)
+                                     :when (and (= "==tape" (:text a))
+                                                (= "==tape" (:text b)))]
+                                 b))]
+                    (throw (ex-info "Tape must contain at least one value"
+                                    {:filename filename
+                                     :line (:line empty-marker)})))
+                  (when (= "==tape" (:text (last lines)))
+                    (throw (ex-info "Tape must contain at least one value"
+                                    {:filename filename
+                                     :line (:line (last lines))})))
+                  (let [groups (->> lines
+                                    (partition-by #(= "==tape" (:text %)))
+                                    (remove #(= "==tape" (:text (first %)))))]
+                    (when (some empty? groups)
+                      (throw (ex-info "Tape must contain at least one value"
+                                      {:filename filename})))
+                    (map
+                      (fn [group]
+                        (try
+                          (process-one-tape (map :text group))
+                          (catch Exception e
+                            (let [bad-line (first
+                                             (filter
+                                               (fn [{:keys [text]}]
+                                                 (try
+                                                   (convert-tape-string text)
+                                                   false
+                                                   (catch Exception _ true)))
+                                               group))]
+                              (throw (ex-info (.getMessage e)
+                                              {:filename filename
+                                               :line (:line bad-line)}
+                                              e))))))
+                      groups)))))
+            args))))

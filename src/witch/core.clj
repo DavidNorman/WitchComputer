@@ -10,11 +10,21 @@
   [str]
   (not (.startsWith str "-")))
 
+(defn parse-args
+  [args]
+  (let [options (filter #(.startsWith % "-") args)
+        files (filter doesn't-start-with-hyphen args)]
+    (when-let [unknown (first (remove #{"-t"} options))]
+      (throw (ex-info (str "Unknown option: " unknown) {:option unknown})))
+    (when-not (seq files)
+      (throw (ex-info "A tape file is required" {})))
+    {:files files
+     :trace (boolean (some #{"-t"} options))}))
+
 (defn -main
   [& args]
   (try
-    (let [files (filter doesn't-start-with-hyphen args)
-          trace (some (partial = "-t") args)]
+    (let [{:keys [files trace]} (parse-args args)]
 
       (pp/cl-format true "====Starting====~%")
       (->
