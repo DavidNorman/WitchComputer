@@ -26,12 +26,12 @@
     {:state @result :output output}))
 
 (deftest argument-parsing
-  (is (= {:files '("tape") :trace false}
+  (is (= {:files '("tape") :single-step false :trace false}
          (core/parse-args ["tape"])))
-  (is (= {:files '("first" "second") :trace true}
+  (is (= {:files '("first" "second") :single-step false :trace true}
          (core/parse-args ["-t" "first" "second"])))
-  (is (= {:files '("tape") :trace true}
-         (core/parse-args ["tape" "-t"])))
+  (is (= {:files '("tape") :single-step true :trace true}
+         (core/parse-args ["tape" "-s" "-t"])))
   (is (thrown-with-msg? clojure.lang.ExceptionInfo
                         #"Unknown option"
                         (core/parse-args ["--wat" "tape"])))
@@ -73,6 +73,38 @@
     (is (str/includes? trace-output "Executing"))
     (is (= (dissoc @plain-result :trace)
            (dissoc @traced-result :trace)))))
+
+(deftest single-step-control
+  (let [initial (-> m/initial-machine-state
+                    (assoc :tapes [[[nil 0.0000M] [nil 0.0100M]]])
+                    (assoc :pc 1))
+        result (atom nil)
+        output (binding [*in* (java.io.BufferedReader. (java.io.StringReader. "\n\n"))]
+                 (with-out-str
+                   (reset! result (core/run-single-step initial))))]
+    (is (:finished @result))
+    (is (= 2 (count (re-seq #"\[single step\]" output))))
+    (is (str/includes? output "Signal 0"))
+    (is (str/includes? output "Signal 1")))
+  (let [initial (-> m/initial-machine-state
+                    (assoc :tapes [[[nil 0.0000M] [nil 0.0100M]]])
+                    (assoc :pc 1))
+        result (atom nil)
+        output (binding [*in* (java.io.BufferedReader. (java.io.StringReader. "\nq\n"))]
+                 (with-out-str
+                   (reset! result (core/run-single-step initial))))]
+    (is (false? (:finished @result)))
+    (is (= 0.0100M (-> @result :tapes first first second)))
+    (is (str/includes? output "execution paused")))
+  (let [initial (-> m/initial-machine-state
+                    (assoc :tapes [[[nil 0.0100M]]])
+                    (assoc :pc 1))
+        result (atom nil)
+        output (binding [*in* (java.io.BufferedReader. (java.io.StringReader. "not-a-button\nq\n"))]
+                 (with-out-str
+                   (reset! result (core/run-single-step initial))))]
+    (is (false? (:finished @result)))
+    (is (str/includes? output "press Return"))))
 
 (deftest opcode-address-decoding
   (are [opcode a b] (and (= a (d/address-a opcode))

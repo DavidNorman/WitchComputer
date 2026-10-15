@@ -24,6 +24,7 @@ using the following command line from the root of the repository.
 
 ## Command line options
 
+    -s  :  Single step; press Return to execute one order, or q to quit
     -t  :  Traces the execution of the system
 
 ## Examples
@@ -33,6 +34,8 @@ using the following command line from the root of the repository.
     $ clojure -M:run resources/demo-2
 
     $ clojure -M:run -t resources/exercise-1
+
+    $ clojure -M:run -s resources/demo-1
 
 ## Tape file format
 
