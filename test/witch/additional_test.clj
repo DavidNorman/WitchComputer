@@ -189,6 +189,11 @@
     (is (:finished state))
     (is (= 0.0362880M (get-in state [:stores 10])))
     (is (str/includes? output "+0.0000009  +0.0362880")))
+  (let [{:keys [state output]} (run-program "recursive-factorial")]
+    (is (:finished state))
+    (is (= 0.0000120M (get-in state [:stores 10])))
+    (is (= 0.0000050M (get-in state [:stores 30])))
+    (is (str/includes? output "+0.0000120")))
   (let [{:keys [state output]} (run-program "fibonacci")]
     (is (:finished state))
     (is (= 0.0010946M (get-in state [:stores 0])))

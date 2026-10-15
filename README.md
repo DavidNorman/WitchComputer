@@ -131,7 +131,7 @@ For example:
 
 There is an implicit decimal point after the first digit of any number.
 
-See the files in the 'resources' directory for some examples.
+See the files in the \`examples\` directory for complete programs.
 
 ## Running the unit tests
 
@@ -172,14 +172,11 @@ this.  The sending dekatrons effectively keep their value unless they are explic
 The symbolic programs in `examples/` include the original demonstrations and exercises,
 factorial and Fibonacci sequences, bubble sort, indirect addressing, Pascal's triangle,
 a sine series, Newton square-root approximation, Euclidean GCD, Horner polynomial
-evaluation, a Leibniz approximation of pi, and a simple counter.
+evaluation, a Leibniz approximation of pi, a simple counter, and recursive
+factorial using a two-word software stack.
 
 ## Outstanding questions
 
-* Is the shift value (set by 08xxxx) independent of the transfer shift. An example
-  is if we set the shift value, perform a multiply, then do an add.  Does this add
-  have the shift value applied as set explicitly, or does it revert to 'no shift'
-  following a multiplication?
 * Is there a separate transfer unit for the accumulator, or a single one for both
   the accumulator and the stores?
 * If there is 1 transfer unit, how do digits 8-14 become set when there is a store

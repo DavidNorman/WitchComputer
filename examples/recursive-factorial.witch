@@ -1,0 +1,215 @@
+; Recursive factorial with a software call stack.
+;
+; Calculates 5! = 120. The values are held in least-significant-digit form,
+; so the printed result is 0.0000120.
+;
+; Each stack frame occupies two stores:
+;   saved n
+;   continuation (+1 = multiply while unwinding, -1 = finish)
+;
+; Stores 50-69 hold the stack. SP contains the address of the next free store.
+; The push and pop routines construct indirect orders in stores 90-97.
+
+N = 10
+RESULT = 20
+ONE = 30
+STACK_POINTER = 40
+FRAME_N = 41
+FRAME_CONTINUATION = 42
+TEMP = 43
+
+STACK_BASE = 50
+
+PUSH_CLEAR_N = 90
+PUSH_STORE_N = 91
+PUSH_CLEAR_CONTINUATION = 92
+PUSH_STORE_CONTINUATION = 93
+PUSH_RETURN = 94
+
+POP_LOAD_CONTINUATION = 95
+POP_LOAD_N = 96
+POP_RETURN = 97
+
+; Tape 1: initialise data and the fixed parts of the stored routines.
+==tape
+
+#1
+
+CLEAR N
+ADD 01 N
++00000005
+
+CLEAR RESULT
+ADD 01 RESULT
++00000001
+
+CLEAR ONE
+ADD 01 ONE
++00000001
+
+CLEAR STACK_POINTER
+ADD 01 STACK_POINTER
++00000050
+
+CLEAR FRAME_N
+CLEAR FRAME_CONTINUATION
+CLEAR TEMP
+
+CLEAR PUSH_CLEAR_N
+CLEAR PUSH_STORE_N
+CLEAR PUSH_CLEAR_CONTINUATION
+CLEAR PUSH_STORE_CONTINUATION
+CLEAR PUSH_RETURN
+ADD 01 PUSH_RETURN
+02102
+
+CLEAR POP_LOAD_CONTINUATION
+CLEAR POP_LOAD_N
+CLEAR POP_RETURN
+ADD 01 POP_RETURN
+02102
+
+SEARCH 1 02
+TRANSFER-CONTROL 02
+
+
+; Tape 2: recursive descent and unwind.
+==tape
+
+#1
+; Push a sentinel frame. Its negative continuation ends the final return.
+CLEAR FRAME_N
+CLEAR FRAME_CONTINUATION
+ADD 02 FRAME_CONTINUATION
+-00000001
+SEARCH 1 03
+TRANSFER-CONTROL 03
+
+; Enter factorial(N).
+#2
+CLEAR TEMP
+ADD N TEMP
+SUBTRACT ONE TEMP
+TEST-POSITIVE TEMP
+SEARCH-IF 3 02
+
+; Base case: factorial(1) = 1.
+CLEAR RESULT
+ADD 02 RESULT
++00000001
+SEARCH 4 02
+
+#3
+; Recursive case: save N and the continuation, then call factorial(N-1).
+CLEAR FRAME_N
+ADD N FRAME_N
+CLEAR FRAME_CONTINUATION
+ADD 02 FRAME_CONTINUATION
++00000001
+SEARCH 1 03
+TRANSFER-CONTROL 03
+
+SUBTRACT ONE N
+SEARCH 2 02
+
+#4
+; Return: pop one frame and dispatch using its continuation.
+SEARCH 2 03
+TRANSFER-CONTROL 03
+TEST-POSITIVE FRAME_CONTINUATION
+SEARCH-IF 5 02
+
+; The negative sentinel is the outermost return.
+PRINT-LAYOUT-2
+ADD RESULT 01
+FINISH
+
+#5
+; Resume after the recursive call: RESULT = RESULT * saved N.
+CLEAR 09
+MULTIPLY FRAME_N RESULT
+SHIFT -1
+ADD 08 RESULT
+SEARCH 4 02
+
+
+; Tape 3: software-stack push and pop routines.
+==tape
+
+#1
+; Construct:
+;   2 SP 00       clear stack[SP] into the drain
+;   1 41 SP       add FRAME_N to stack[SP]
+CLEAR PUSH_CLEAR_N
+ADD 03 PUSH_CLEAR_N
+20000
+CLEAR PUSH_STORE_N
+ADD 03 PUSH_STORE_N
+14100
+
+CLEAR 09
+SHIFT -3
+ADD STACK_POINTER 09
+ADD 08 PUSH_CLEAR_N
+
+CLEAR 09
+SHIFT -5
+ADD STACK_POINTER 09
+ADD 08 PUSH_STORE_N
+
+ADD 03 STACK_POINTER
++00000001
+
+; Construct the same pair for FRAME_CONTINUATION at the next address.
+CLEAR PUSH_CLEAR_CONTINUATION
+ADD 03 PUSH_CLEAR_CONTINUATION
+20000
+CLEAR PUSH_STORE_CONTINUATION
+ADD 03 PUSH_STORE_CONTINUATION
+14200
+
+CLEAR 09
+SHIFT -3
+ADD STACK_POINTER 09
+ADD 08 PUSH_CLEAR_CONTINUATION
+
+CLEAR 09
+SHIFT -5
+ADD STACK_POINTER 09
+ADD 08 PUSH_STORE_CONTINUATION
+
+ADD 03 STACK_POINTER
++00000001
+
+; Execute the constructed push and return through store 94.
+TRANSFER-CONTROL PUSH_CLEAR_N
+
+
+#2
+; Pop the continuation from --SP. Construct 1 SP 42.
+SUBTRACT ONE STACK_POINTER
+CLEAR POP_LOAD_CONTINUATION
+ADD 03 POP_LOAD_CONTINUATION
+10042
+
+CLEAR 09
+SHIFT -3
+ADD STACK_POINTER 09
+ADD 08 POP_LOAD_CONTINUATION
+
+; Pop saved N from --SP. Construct 1 SP 41.
+SUBTRACT ONE STACK_POINTER
+CLEAR POP_LOAD_N
+ADD 03 POP_LOAD_N
+10041
+
+CLEAR 09
+SHIFT -3
+ADD STACK_POINTER 09
+ADD 08 POP_LOAD_N
+
+CLEAR FRAME_CONTINUATION
+CLEAR FRAME_N
+
+; Execute the constructed loads and return through store 97.
+TRANSFER-CONTROL POP_LOAD_CONTINUATION
