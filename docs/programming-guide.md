@@ -22,6 +22,14 @@ Where this guide uses modern terms such as “subroutine,” “stack,” and
 “continuation,” those terms describe techniques constructed from the historical
 orders documented in those references.
 
+## How to read this guide
+
+For a first program, read the terminology and sections 1–8, then use the
+checklist at the end. The later sections build progressively from arithmetic
+through generated orders, indirect addressing, stacks, and recursion. If you
+are following an example, keep its symbolic `.witch` source open beside the
+guide; links point to the most relevant complete programs.
+
 ## Terminology
 
 The historical documentation uses several words differently from modern
@@ -101,7 +109,44 @@ Several differences from a modern computer shape every WITCH program:
 A tape reader is not merely a file handle. After control is transferred to it,
 successive groups on that tape are interpreted as orders.
 
-## 2. Fixed-point representation
+## 2. Symbolic source and tape structure
+
+The assembler source deliberately resembles a numerical tape. Every source
+starts with `==tape`; another `==tape` begins the contents of the next reader:
+
+```text
+VALUE = 10
+
+==tape
+#1
+CLEAR VALUE
+ADD 01 VALUE
++00000005
+PRINT-LAYOUT-2
+ADD VALUE 01
+FINISH
+```
+
+`VALUE = 10` is an address alias, not a storage allocation or a control-flow
+label. Aliases may be declared anywhere and used before their declaration.
+`#1` is a searchable physical block marker. It does not name the next order in
+the way a modern assembly-language label would.
+
+Symbolic orders such as `ADD VALUE 01` are translated into five-digit orders.
+Raw five-digit orders, signed eight-digit data, comments beginning with `;`,
+block markers, and `==tape` may all appear in the same source. This is useful
+when the symbolic name would obscure that an order is being treated as data:
+
+```text
+ADD 03 GENERATED_ORDER
+14100                       ; template for ADD 41 <destination>
+```
+
+The assembler preserves tape and block structure in its numerical output. The
+simulator reads that generated output; it does not execute `.witch` source
+directly. Commands for assembling and running a source appear in section 21.
+
+## 3. Fixed-point representation
 
 The decimal point is fixed after the first digit:
 
@@ -128,13 +173,15 @@ Ordinary stores retain seven fractional digits; the accumulator retains fourteen
 Moving from the accumulator to a store discards digits that do not fit, so decide
 where precision may safely be lost.
 
-## 3. Clearing and moving values
+## 4. Clearing and moving values
 
-`CLEAR` is an assembler pseudo-order. It sends a store's contents to address 00,
-the drain:
+`CLEAR` is an assembler pseudo-order. It sends the contents of its source
+address to address 00, the drain. The source may be an ordinary store or the
+accumulator at address 09:
 
 ```text
 CLEAR RESULT
+CLEAR 09
 ```
 
 Copy while retaining the source:
@@ -155,7 +202,7 @@ Arithmetic addresses also normally cannot be in the same group of ten stores:
 an operation between stores 21 and 27 is invalid, while one between 21 and 37
 is valid. Use a temporary in another group or the accumulator when necessary.
 
-## 4. Nines complement and two zeroes
+## 5. Nines complement and two zeroes
 
 Nines-complement arithmetic represents zero twice:
 
@@ -188,7 +235,7 @@ TEST-NEGATIVE ZERO_TEST
 The counter and GCD examples use variants of this technique. If `VALUE` is
 nonzero, restore `ZERO_TEST` to negative zero before reusing it.
 
-## 5. Sign tests and conditional control
+## 6. Sign tests and conditional control
 
 Conditional execution has two stages:
 
@@ -240,7 +287,7 @@ SEARCH-IF 2 01
 Choose the initial count and test carefully so negative zero changes the sign on
 the intended iteration.
 
-## 6. Blocks and control on one tape
+## 7. Blocks and control on one tape
 
 A block marker is a physical tape character represented as `#0` through `#9`.
 It is not an assembler address label. Searching repositions a tape:
@@ -262,7 +309,7 @@ A useful convention is:
 
 Block numbers are local to a tape reader, so several tapes may each have block 1.
 
-## 7. Using multiple tapes
+## 8. Using multiple tapes
 
 A practical division of work is:
 
@@ -283,6 +330,30 @@ order. A routine can return with `TRANSFER-CONTROL 02`, and tape 2 resumes at
 the following group. This tape-position return is the simplest substitute for a
 return address.
 
+Here is a complete two-tape source. Tape 1 initializes and calls; tape 2 adds
+one and returns to tape 1 at the order following `TRANSFER-CONTROL 02`:
+
+```text
+VALUE = 10
+
+==tape
+#1
+CLEAR VALUE
+ADD 01 VALUE
++00000005
+SEARCH 1 02
+TRANSFER-CONTROL 02
+PRINT-LAYOUT-2
+ADD VALUE 01
+FINISH
+
+==tape
+#1
+ADD 02 VALUE
++00000001
+TRANSFER-CONTROL 01
+```
+
 Guidelines:
 
 - Put a heavily repeated inner routine on a short tape.
@@ -291,7 +362,7 @@ Guidelines:
 - Keep sequential numerical input separate from instructions when useful.
 - Document whether a routine returns to a fixed tape or a stored order.
 
-## 8. A tape-based subroutine convention
+## 9. A tape-based subroutine convention
 
 The machine imposes no calling convention. Define one and document every routine:
 
@@ -320,7 +391,114 @@ The routine ends with `TRANSFER-CONTROL 02` when tape 2 is its caller.
 See [indirect.witch](../examples/indirect.witch) and
 [recursive-factorial.witch](../examples/recursive-factorial.witch).
 
-## 9. Stored orders and self-modifying code
+## 10. Shift discipline
+
+An `08` order selects a shift for the next eligible add, subtract, or
+positive-modulus transfer:
+
+```text
+SHIFT 1     ; shift A, multiply by 10
+SHIFT 0     ; normal transfer
+SHIFT -1    ; shift C, divide by 10
+...
+SHIFT -7    ; shift J
+```
+
+Rules:
+
+- The next eligible `ADD`, `SUBTRACT`, or
+  `TRANSFER-POSITIVE-MODULUS` consumes it.
+- Tape input and printer/perforator output ignore it and leave it pending.
+- Multiply, divide, and clear orders leave it pending.
+- A shifted transfer cannot clear its sending store.
+- Shift A discards the digit shifted out on the left.
+- Right-shifted digits are discarded in an ordinary store, while the
+  accumulator can retain additional positions.
+
+Address 08 sends the last seven accumulator digits with their sign. Combining
+it with a shift is a standard way to place a multiplication result into a store
+or to position an address field while constructing an order. When debugging,
+check whether an earlier shift is still pending.
+
+## 11. Multiplication
+
+Multiplication adds its product to the accumulator and clears the multiplier,
+which is the receiving operand:
+
+```text
+MULTIPLY MULTIPLICAND MULTIPLIER
+```
+
+Clear the accumulator unless accumulation is intentional:
+
+```text
+CLEAR 09
+MULTIPLY A B
+```
+
+Least-significant-digit integers commonly use:
+
+```text
+CLEAR 09
+MULTIPLY A RESULT
+SHIFT -1
+ADD 08 RESULT
+```
+
+`RESULT` is cleared as the multiplier and then receives the rescaled product.
+Negative multipliers temporarily reduce accumulator capacity on the physical
+machine, so avoid values near the magnitude limit.
+
+## 12. Division
+
+For division:
+
+1. Put the dividend in the accumulator.
+2. Clear the quotient store.
+3. Execute `DIVIDE DIVISOR QUOTIENT`.
+4. Read the remainder from the accumulator.
+
+```text
+CLEAR QUOTIENT
+CLEAR 09
+ADD DIVIDEND 09
+DIVIDE DIVISOR QUOTIENT
+```
+
+Remember:
+
+- A positive-zero dividend stops with shift A selected.
+- A negative-zero dividend is accepted.
+- Exact positive division has a one-unit error in the final quotient digit and
+  leaves a remainder.
+- A negative dividend avoids that particular quotient error.
+- The quotient store must be positive zero; negative zero is not suitable.
+
+Multiplication by a reciprocal is often simpler when precision permits it.
+
+## 13. Printing
+
+The assembler's two convenience names select the two layouts most often used
+by the examples:
+
+```text
+PRINT-LAYOUT-1
+ADD VALUE 01
+PRINT-LAYOUT-2
+ADD OTHER_VALUE 01
+```
+
+Despite their convenience names, these emit the historical layout-selection
+orders for layouts 3 and 4 respectively. To select a layout by its historical
+number, use the general form, which accepts 0 through 9:
+
+```text
+PRINT-LAYOUT 5
+```
+
+Printer output ignores a pending arithmetic shift and does not consume it.
+
+## 14. Stored orders and self-modifying code
 
 The order `14150` means `ADD 41 50`, but in a store it is also the number
 `1.4150`:
@@ -395,7 +573,7 @@ Before executing a generated order:
 4. Inspect the result under tracing.
 5. Transfer control to the order's store.
 
-## 10. Indirect loads and stores
+## 15. Indirect loads and stores
 
 There is no indirect-addressing order, but a program can construct one.
 [indirect.witch](../examples/indirect.witch) reserves stores for the desired
@@ -417,7 +595,7 @@ Indirect access is useful for arrays, software stacks, runtime-selected tables,
 and dynamic returns. It is slow, so direct addresses remain preferable for
 small fixed problems.
 
-## 11. Arrays
+## 16. Arrays
 
 An array is a consecutive store range:
 
@@ -441,7 +619,7 @@ For a variable index:
 Swapping needs temporary storage, and generated orders remain subject to
 same-group restrictions. Put temporaries in another group from the array.
 
-## 12. A software stack
+## 17. A software stack
 
 [recursive-factorial.witch](../examples/recursive-factorial.witch) implements a
 stack in stores 50 through 69. Its stack pointer is the next free address:
@@ -484,14 +662,15 @@ Stores 90 through 97 hold generated push/pop programs. The stack has ten words,
 or five frames. A general implementation should stop on overflow beyond store
 69 or underflow below store 50; this example has a fixed, known depth.
 
-## 13. Calls, returns, and continuations
+## 18. Calls, returns, and continuations
 
 Two return mechanisms are useful.
 
 ### Tape-position return
 
 Call a routine on another tape. It transfers back to the caller's reader, which
-resumes after the call.
+resumes after the call. Sections 8 and 9 give the full convention; no stored
+return address is needed.
 
 ### Continuation marker
 
@@ -507,7 +686,7 @@ multiplication; the negative sentinel selects termination. More complex
 routines can use several continuation values and dispatch through sign tests
 or generated transfer orders.
 
-## 14. Recursive factorial
+## 19. Recursive factorial
 
 The example implements:
 
@@ -515,16 +694,22 @@ The example implements:
 factorial(n):
     if n <= 1:
         result = 1
-        return
+        goto RETURN
 
     push(saved_n=n, continuation=AFTER_RECURSION)
     n = n - 1
     factorial(n)
 
 AFTER_RECURSION:
-    pop saved_n
     result = result * saved_n
-    return
+    goto RETURN
+
+RETURN:
+    pop(saved_n, continuation)
+    if continuation is the negative sentinel:
+        print result and finish
+    otherwise:
+        goto AFTER_RECURSION
 ```
 
 Before the first call it pushes a negative sentinel. For `factorial(5)`:
@@ -544,110 +729,7 @@ Compare [factorial.witch](../examples/factorial.witch) and
 [recursive-factorial.witch](../examples/recursive-factorial.witch) to see the
 cost of forcing recursion onto a machine naturally suited to iteration.
 
-## 15. Shift discipline
-
-An `08` order selects a shift for the next eligible add, subtract, or
-positive-modulus transfer:
-
-```text
-SHIFT 1     ; shift A, multiply by 10
-SHIFT 0     ; normal transfer
-SHIFT -1    ; shift C, divide by 10
-...
-SHIFT -7    ; shift J
-```
-
-Rules:
-
-- The next eligible `ADD`, `SUBTRACT`, or
-  `TRANSFER-POSITIVE-MODULUS` consumes it.
-- Tape input and printer/perforator output ignore it and leave it pending.
-- Multiply, divide, and clear orders leave it pending.
-- A shifted transfer cannot clear its sending store.
-- Shift A discards the digit shifted out on the left.
-- Right-shifted digits are discarded in an ordinary store, while the
-  accumulator can retain additional positions.
-
-Address 08 sends the last seven accumulator digits with their sign. Combining
-it with a shift is a standard way to place a multiplication result into a store.
-When debugging, check whether an earlier shift is still pending.
-
-## 16. Multiplication
-
-Multiplication adds its product to the accumulator and clears the multiplier,
-which is the receiving operand:
-
-```text
-MULTIPLY MULTIPLICAND MULTIPLIER
-```
-
-Clear the accumulator unless accumulation is intentional:
-
-```text
-CLEAR 09
-MULTIPLY A B
-```
-
-Least-significant-digit integers commonly use:
-
-```text
-CLEAR 09
-MULTIPLY A RESULT
-SHIFT -1
-ADD 08 RESULT
-```
-
-`RESULT` is cleared as the multiplier and then receives the rescaled product.
-Negative multipliers temporarily reduce accumulator capacity on the physical
-machine, so avoid values near the magnitude limit.
-
-## 17. Division
-
-For division:
-
-1. Put the dividend in the accumulator.
-2. Clear the quotient store.
-3. Execute `DIVIDE DIVISOR QUOTIENT`.
-4. Read the remainder from the accumulator.
-
-```text
-CLEAR QUOTIENT
-CLEAR 09
-ADD DIVIDEND 09
-DIVIDE DIVISOR QUOTIENT
-```
-
-Remember:
-
-- A positive-zero dividend stops with shift A selected.
-- A negative-zero dividend is accepted.
-- Exact positive division has a one-unit error in the final quotient digit and
-  leaves a remainder.
-- A negative dividend avoids that particular quotient error.
-- The quotient store must be positive zero; negative zero is not suitable.
-
-Multiplication by a reciprocal is often simpler when precision permits it.
-
-## 18. Printing
-
-Select a layout before printer output:
-
-```text
-PRINT-LAYOUT-1
-ADD VALUE 01
-PRINT-LAYOUT-2
-ADD OTHER_VALUE 01
-```
-
-The general form accepts layouts 0 through 9:
-
-```text
-PRINT-LAYOUT 5
-```
-
-Printer output ignores a pending arithmetic shift and does not consume it.
-
-## 19. Debugging
+## 20. Debugging
 
 Single-step a tape:
 
@@ -678,7 +760,7 @@ Address 00's random round-off source can expose an incorrectly generated clear
 order nondeterministically. If behaviour changes between runs, inspect generated
 orders containing source address 00.
 
-## 20. Assembling and visualising tape
+## 21. Assembling and visualising tape
 
 Assemble and run:
 
@@ -702,7 +784,7 @@ clojure -M:assemble examples/recursive-factorial.witch --punch
 
 The punched representation is visual output, not simulator input.
 
-## 21. Technique index
+## 22. Technique index
 
 | Technique | Example |
 |---|---|
@@ -720,7 +802,7 @@ The punched representation is visual output, not simulator input.
 | Software stack | [recursive-factorial.witch](../examples/recursive-factorial.witch) |
 | Continuations and recursion | [recursive-factorial.witch](../examples/recursive-factorial.witch) |
 
-## 22. Checklist for a new program
+## 23. Checklist for a new program
 
 Before running a new program, ask:
 
