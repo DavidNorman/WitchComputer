@@ -71,6 +71,77 @@
     (is (str/includes? output "; SOURCE = 10"))
     (is (str/includes? output "; an inline comment"))))
 
+(deftest punched-tape-visualization
+  (let [punched (assembler/punched-string
+                  "==tape\n#1\n00100\n+12000000\n==tape\n#2\n00100\n")
+        rows (str/split-lines punched)]
+    (is (str/includes? punched "WITCH PUNCHED TAPE 1"))
+    (is (str/includes? punched "WITCH PUNCHED TAPE 2"))
+    (is (= 1 (count (re-seq #"· = blank; ● = punched; o = feed hole"
+                            punched))))
+    (is (some #{"  ● ● ·  o  ● ·   #1"} rows))
+    (is (some #{"  · · ·  o  · ●   +"} rows))
+    (is (some #{"  · · ●  o  ● ·   2"} rows))
+    (is (= 16 (count (filter #(str/includes? % "  o  ")
+                             (take-while #(not= "WITCH PUNCHED TAPE 2" %)
+                                         rows)))))))
+
+(deftest punched-code-table
+  (is (= {\0 #{:a :b}, \1 #{:a :c}, \2 #{:b :c}, \3 #{:b :d},
+          \4 #{:c :d}, \5 #{:c :e}, \6 #{:d :e}, \7 #{:a :d},
+          \8 #{:a :e}, \9 #{:b :e}}
+         assembler/digit-holes)))
+
+(deftest assembler-output-options
+  (is (= {:input "source.witch"
+          :numerical-output "output.tape"
+          :punched-output nil}
+         (assembler/parse-cli-args ["source.witch" "output.tape"])))
+  (is (= {:input "source.witch"
+          :numerical-output nil
+          :punched-output "output.punch"}
+         (assembler/parse-cli-args
+           ["source.witch" "--punch" "output.punch"])))
+  (is (= {:input "source.witch"
+          :numerical-output "output.tape"
+          :punched-output "output.punch"}
+         (assembler/parse-cli-args
+           ["source.witch" "output.tape" "--punch" "output.punch"])))
+  (is (= {:input "source.witch"
+          :numerical-output nil
+          :punched-output :stdout}
+         (assembler/parse-cli-args ["source.witch" "--punch"])))
+  (is (thrown? clojure.lang.ExceptionInfo
+               (assembler/parse-cli-args ["source.witch"])))
+  (is (thrown? clojure.lang.ExceptionInfo
+               (assembler/parse-cli-args
+                 ["source.witch" "same" "--punch" "same"]))))
+
+(deftest writes-punched-output-to-stdout
+  (let [source (java.io.File/createTempFile "witch-punch-" ".witch")]
+    (try
+      (spit source "==tape\n#1\nFINISH\n")
+      (let [output (with-out-str
+                     (assembler/-main (.getPath source) "--punch"))]
+        (is (str/starts-with?
+              output "· = blank; ● = punched; o = feed hole"))
+        (is (str/includes? output "WITCH PUNCHED TAPE 1")))
+      (finally
+        (.delete source)))))
+
+(deftest writes-punched-output
+  (let [source (java.io.File/createTempFile "witch-punch-" ".witch")
+        output (java.io.File/createTempFile "witch-punch-" ".txt")]
+    (try
+      (spit source "==tape\n#1\nFINISH\n")
+      (assembler/assemble-punched-file (.getPath source) (.getPath output))
+      (let [rendered (slurp output)]
+        (is (str/includes? rendered "WITCH PUNCHED TAPE 1"))
+        (is (str/includes? rendered "#1")))
+      (finally
+        (.delete source)
+        (.delete output)))))
+
 (deftest labels-are-case-insensitive
   (is (= ["11020"]
          (significant-lines

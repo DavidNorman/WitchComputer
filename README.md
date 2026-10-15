@@ -35,6 +35,21 @@ The simulator reads only the generated tape; it does not interpret symbolic sour
     $ clojure -M:assemble examples/demo-1.witch /tmp/demo-1.tape
     $ clojure -M:run /tmp/demo-1.tape
 
+It can also produce an annotated visual representation of the WITCH's five-hole
+punched tape. Use \`--punch\` by itself, or together with a numerical output:
+
+    $ clojure -M:assemble examples/demo-1.witch --punch /tmp/demo-1.punch
+    $ clojure -M:assemble examples/demo-1.witch /tmp/demo-1.tape --punch /tmp/demo-1.punch
+
+Leave off the punched output filename to write the visualization to standard output:
+
+    $ clojure -M:assemble examples/demo-1.witch --punch
+
+The punched representation shows the five data positions in \`E D C B A\` order,
+with the smaller feed hole between C and B. \`●\` is a punched hole, \`·\` is an
+unpunched position, and \`o\` is the feed hole. It is a visual output format only;
+the simulator continues to read numerical tape files.
+
 Symbolic files retain the tape format's `==tape`, `#n`, comments, signed data, and raw
 five-digit orders. Address aliases can be declared anywhere and may be used before their
 declaration:
@@ -158,11 +173,6 @@ The symbolic programs in `examples/` include the original demonstrations and exe
 factorial and Fibonacci sequences, bubble sort, indirect addressing, Pascal's triangle,
 a sine series, Newton square-root approximation, Euclidean GCD, Horner polynomial
 evaluation, a Leibniz approximation of pi, and a simple counter.
-
-## ToDo
-
-* Write some other example tapes (calculate bubble sort, quick sort, ...)
-* Introduce punched hole tape format
 
 ## Outstanding questions
 

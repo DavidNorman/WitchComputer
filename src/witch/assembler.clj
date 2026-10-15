@@ -8,6 +8,26 @@
 (def data-pattern #"^[-+]\d{8}$")
 (def block-pattern #"^#\d$")
 
+(def digit-holes
+  {\0 #{:a :b}
+   \1 #{:a :c}
+   \2 #{:b :c}
+   \3 #{:b :d}
+   \4 #{:c :d}
+   \5 #{:c :e}
+   \6 #{:d :e}
+   \7 #{:a :d}
+   \8 #{:a :e}
+   \9 #{:b :e}})
+
+(def character-holes
+  (merge digit-holes
+         {\+ #{:a}
+          \- #{:e}
+          \space #{:c}}))
+
+(def hole-order [:e :d :c :b :a])
+
 (defn assembler-error
   [message line-number line]
   (throw (ex-info message {:line-number line-number :line line})))
@@ -192,6 +212,66 @@
   [source]
   (str (str/join "\n" (assemble-lines (str/split-lines source))) "\n"))
 
+(defn- significant-tape-lines
+  [assembled]
+  (->> (str/split-lines assembled)
+       (map (comp :code source-parts))
+       (remove empty?)))
+
+(defn- punched-row
+  [holes label]
+  (let [[e d c b a] (map #(if (contains? holes %) "●" "·") hole-order)]
+    (format "  %s %s %s  o  %s %s   %s" e d c b a label)))
+
+(defn- character-row
+  [character]
+  (punched-row (get character-holes character)
+               (case character
+                 \space "SPACE"
+                 (str character))))
+
+(defn- block-row
+  [digit]
+  (let [holes (apply disj #{:a :b :c :d :e} (get digit-holes digit))]
+    (punched-row holes (str "#" digit))))
+
+(defn- render-punched-tape
+  [number lines]
+  (let [{:keys [rows]}
+        (reduce
+          (fn [{:keys [rows after-block]} line]
+            (if (re-matches block-pattern line)
+              {:rows (conj rows (block-row (second line)))
+               :after-block true}
+              {:rows (into rows
+                           (concat
+                             (when-not after-block
+                               [(character-row \space)])
+                             (map character-row line)))
+               :after-block false}))
+          {:rows [] :after-block false}
+          lines)]
+    (str/join "\n"
+              (concat
+                [(str "WITCH PUNCHED TAPE " number)
+                 "  E D C     B A   character"]
+                rows))))
+
+(defn punched-string
+  "Render assembled numerical tape as an annotated five-hole punched-tape
+  visualization. This is a display format, not simulator input."
+  [assembled]
+  (let [groups (->> (significant-tape-lines assembled)
+                    (partition-by #(= "==tape" %))
+                    (remove #(= "==tape" (first %))))]
+    (str "· = blank; ● = punched; o = feed hole\n\n"
+         (str/join "\n\n"
+                   (map-indexed
+                    (fn [index lines]
+                      (render-punched-tape (inc index) lines))
+                    groups))
+         "\n")))
+
 (defn assemble-file
   [input-file output-file]
   (when (= (.getCanonicalPath (io/file input-file))
@@ -201,12 +281,57 @@
   (spit output-file (assemble-string (slurp input-file)))
   output-file)
 
+(defn assemble-punched-file
+  [input-file output-file]
+  (when (= (.getCanonicalPath (io/file input-file))
+           (.getCanonicalPath (io/file output-file)))
+    (throw (ex-info "Input and output files must be different"
+                    {:input input-file :output output-file})))
+  (spit output-file
+        (-> input-file slurp assemble-string punched-string))
+  output-file)
+
+(defn parse-cli-args
+  [args]
+  (loop [remaining args
+         positional []
+         punched-output nil]
+    (if-let [arg (first remaining)]
+      (if (= "--punch" arg)
+        (do
+          (when punched-output
+            (throw (ex-info "--punch may only be specified once" {:args args})))
+          (if-let [output-file (second remaining)]
+            (recur (nnext remaining) positional output-file)
+            (recur nil positional :stdout)))
+        (recur (next remaining) (conj positional arg) punched-output))
+      (let [[input-file numerical-output & extra] positional]
+        (when (or extra
+                  (nil? input-file)
+                  (and (nil? numerical-output) (nil? punched-output)))
+          (throw (ex-info
+                   (str "Usage: clojure -M:assemble <symbolic-source> "
+                        "[output-tape] [--punch [visual-output]]")
+                   {:args args})))
+        (when (and numerical-output
+                   (string? punched-output)
+                   (= (.getCanonicalPath (io/file numerical-output))
+                      (.getCanonicalPath (io/file punched-output))))
+          (throw (ex-info "Numerical and punched outputs must be different"
+                          {:args args})))
+        {:input input-file
+         :numerical-output numerical-output
+         :punched-output punched-output}))))
+
 (defn -main
   [& args]
-  (when-not (= 2 (count args))
-    (throw (ex-info
-             "Usage: clojure -M:assemble <symbolic-source> <output-tape>"
-             {:args args})))
-  (let [[input-file output-file] args]
-    (assemble-file input-file output-file)
-    (println (str "Assembled " input-file " -> " output-file))))
+  (let [{:keys [input numerical-output punched-output]} (parse-cli-args args)]
+    (when numerical-output
+      (assemble-file input numerical-output)
+      (println (str "Assembled " input " -> " numerical-output)))
+    (when punched-output
+      (if (= :stdout punched-output)
+        (print (-> input slurp assemble-string punched-string))
+        (do
+          (assemble-punched-file input punched-output)
+          (println (str "Punched " input " -> " punched-output)))))))
