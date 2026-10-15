@@ -95,10 +95,11 @@
     "X = 10\nx = 20\n" #"Duplicate label" 2))
 
 (deftest symbolic-programs-produce-valid-tapes
-  (doseq [program ["bubble-sort" "demo-1" "demo-2"
+  (doseq [program ["bubble-sort" "counter" "demo-1" "demo-2"
                    "exercise-1" "exercise-2" "exercise-3" "exercise-4"
                    "exercise-5" "exercise-6" "factorial"
-                   "fibonacci" "indirect" "pascal" "sine"]]
+                   "fibonacci" "gcd" "indirect" "pascal" "pi"
+                   "polynomial" "sine"]]
     (let [assembled (java.io.File/createTempFile "witch-assembled-" ".tape")]
       (try
         (assembler/assemble-file (str "examples/" program ".witch")

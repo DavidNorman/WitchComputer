@@ -92,7 +92,7 @@
                    (reset! result (core/run-single-step initial))))]
     (is (:finished @result))
     (is (= 2 (count (re-seq #"\[single step\]" output))))
-    (is (str/includes? output "Signal 0"))
+    (is (not (str/includes? output "Signal 0")))
     (is (str/includes? output "Signal 1")))
   (let [initial (-> m/initial-machine-state
                     (assoc :tapes [[[nil 0.0000M] [nil 0.0100M]]])
@@ -204,7 +204,23 @@
         next (n/from-nines (get-in state [:stores 20]))]
     (is (:finished state))
     (is (< (abs (- current next)) 0.000005M))
-    (is (str/includes? output "+1.4142135"))))
+    (is (str/includes? output "+1.4142135")))
+  (let [{:keys [state output]} (run-program "gcd")]
+    (is (:finished state))
+    (is (= 0.6000000M (get-in state [:stores 0])))
+    (is (str/includes? output "+0.6000000")))
+  (let [{:keys [state output]} (run-program "polynomial")]
+    (is (:finished state))
+    (is (= -1.0640000M (n/from-nines (get-in state [:stores 20]))))
+    (is (str/includes? output "-1.0640000")))
+  (let [{:keys [state output]} (run-program "pi")]
+    (is (:finished state))
+    (is (= 3.3396820M (:accumulator state)))
+    (is (str/includes? output "+3.3396820")))
+  (let [{:keys [state output]} (run-program "counter")]
+    (is (:finished state))
+    (is (= 9.0000000M (get-in state [:stores 0])))
+    (is (= 10 (count (re-seq #"[+]\d\.0000000" output))))))
 
 (deftest all-bundled-programs-terminate
   (doseq [resource ["demo-2" "exercise-1" "exercise-2" "exercise-4"

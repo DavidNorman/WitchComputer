@@ -13,9 +13,12 @@
    :transfer-output     0.00000000000000M
    :printing-layout     0M
    :pc                  0M
-   :sign-test           :false
+   :sign-test           nil
    :tapes               [[]]
-   :finished            false})
+   :finished            false
+   :stopped             false
+   :stop-reason         nil
+   :waiting-signal      nil})
 
 
 (defn rotate
@@ -70,6 +73,10 @@
 
   (pp/cl-format true "Printing layout: ~A~%"
                 (:printing-layout machine-state))
+  (when (:stopped machine-state)
+    (pp/cl-format true "Stopped: ~A~%" (:stop-reason machine-state)))
+  (when (:waiting-signal machine-state)
+    (pp/cl-format true "Waiting at signal: ~A~%" (:waiting-signal machine-state)))
 
   machine-state)
 
@@ -279,4 +286,3 @@
   [machine-state]
   (let [pc (:pc machine-state)]
     (assoc machine-state :pc (if (>= pc 10) (inc pc) pc))))
-

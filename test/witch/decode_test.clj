@@ -1115,13 +1115,12 @@
            :finished)
          true))
 
-  (is (= (->
-           m/initial-machine-state
-           (assoc :tapes [[[nil 0.0200M]]])
-           (assoc :pc 1)
-           (d/step)
-           :finished)
-         true))
+  (let [state (-> m/initial-machine-state
+                  (assoc :tapes [[[nil 0.0200M]]])
+                  (assoc :pc 1)
+                  (d/step))]
+    (is (false? (:finished state)))
+    (is (= 2 (:waiting-signal state))))
 
 
   (is (thrown? ExceptionInfo
@@ -1131,3 +1130,87 @@
                  (assoc :pc 1)
                  (d/step))))
   )
+
+(deftest programming-manual-edge-cases
+  (testing "conditional orders stop if no sign examination has occurred"
+    (let [transfer (d/exec-transfer-control m/initial-machine-state 22 40)
+          search (d/exec-search-tape-conditional m/initial-machine-state 51 1)]
+      (is (:stopped transfer))
+      (is (= :no-sign-examination (:stop-reason transfer)))
+      (is (:stopped search))
+      (is (= :no-sign-examination (:stop-reason search)))))
+
+  (testing "only 021 and 022 are transfer-control orders"
+    (is (thrown? ExceptionInfo
+                 (d/exec-transfer-control m/initial-machine-state 23 40))))
+
+  (testing "input ignores and preserves a pending shift"
+    (let [state (-> m/initial-machine-state
+                    (assoc :transfer-shift 1M
+                           :tapes [[[nil 1.0000000M]]])
+                    (d/exec-add 1 10))]
+      (is (= 1.0000000M (get-in state [:stores 0])))
+      (is (= 1M (:transfer-shift state)))))
+
+  (testing "output ignores and preserves a pending shift"
+    (let [result (atom nil)
+          output (with-out-str
+                   (reset! result
+                           (-> m/initial-machine-state
+                               (assoc :transfer-shift 1M
+                                      :printing-layout 4)
+                               (assoc-in [:stores 0] 1.0000000M)
+                               (d/exec-add 10 1))))]
+      (is (re-find #"[+]1\.0000000" output))
+      (is (= 1M (:transfer-shift @result)))))
+
+  (testing "clear, multiply, and divide orders do not consume a pending shift"
+    (let [cleared (-> m/initial-machine-state
+                      (assoc :transfer-shift -1M)
+                      (assoc-in [:stores 0] 1.0000000M)
+                      (d/exec-add-and-clear 10 20))
+          multiplied (-> m/initial-machine-state
+                         (assoc :transfer-shift -1M)
+                         (assoc-in [:stores 0] 2.0000000M)
+                         (assoc-in [:stores 10] 3.0000000M)
+                         (d/exec-multiply 10 20))
+          divided (-> m/initial-machine-state
+                      (assoc :transfer-shift -1M
+                             :accumulator 1.00000000000000M)
+                      (assoc-in [:stores 0] 2.0000000M)
+                      (d/exec-divide 10 20))]
+      (is (= 1.0000000M (get-in cleared [:stores 10])))
+      (is (= -1M (:transfer-shift cleared)))
+      (is (= -1M (:transfer-shift multiplied)))
+      (is (= -1M (:transfer-shift divided)))))
+
+  (testing "positive-zero division stops with shift A selected"
+    (let [state (-> m/initial-machine-state
+                    (assoc-in [:stores 0] 2.0000000M)
+                    (d/exec-divide 10 20))]
+      (is (:stopped state))
+      (is (= :positive-zero-dividend (:stop-reason state)))
+      (is (= 1M (:transfer-shift state)))))
+
+  (testing "clear forms cannot be used for tape input or printed output"
+    (is (thrown? ExceptionInfo
+                 (d/exec-add-and-clear
+                   (assoc m/initial-machine-state :tapes [[[nil 1M]]])
+                   1 10)))
+    (is (thrown? ExceptionInfo
+                 (d/exec-subtract-and-clear m/initial-machine-state 10 1))))
+
+  (testing "positive modulus requires a store or accumulator source"
+    (is (thrown? ExceptionInfo
+                 (d/exec-transfer-positive-modulus
+                   (assoc m/initial-machine-state :tapes [[[nil 1M]]])
+                   1 10))))
+
+  (testing "run pauses distinctly at a Signal order"
+    (let [state (-> m/initial-machine-state
+                    (assoc :tapes [[[nil 0.0200M]]]
+                           :pc 1)
+                    (d/run))]
+      (is (false? (:finished state)))
+      (is (= 2 (:waiting-signal state)))
+      (is (nil? (:waiting-signal (d/pass-signal state)))))))

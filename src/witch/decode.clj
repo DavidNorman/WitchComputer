@@ -41,63 +41,84 @@
   [opcode]
   (-> opcode (* 10000M) (mod 100M) int))
 
+(defn- tape-input?
+  [address]
+  (<= 1 address 7))
+
+(defn- printed-or-perforated-output?
+  [address]
+  (<= 1 address 4))
+
+(defn- input-or-output-order?
+  [a b]
+  (or (tape-input? a)
+      (printed-or-perforated-output? b)))
+
+(defn- apply-transfer
+  "Apply an arithmetic transfer. A pending shift is ignored and retained by
+  input/output orders; otherwise this transfer consumes it."
+  [machine-state a b complement]
+  (let [pending-shift (:transfer-shift machine-state)
+        consumes-shift (not (input-or-output-order? a b))]
+    (-> machine-state
+        (assoc :sending-clear false
+               :transfer-complement complement
+               :transfer-shift (if consumes-shift pending-shift 0M))
+        (m/read-sending-address a)
+        (m/transfer)
+        (m/write-address b)
+        (assoc :transfer-shift (if consumes-shift 0M pending-shift))
+        (m/advance-pc))))
+
 (defn exec-add
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (->
-    machine-state
-    (assoc :sending-clear false)
-    (assoc :transfer-complement false)
-    (m/read-sending-address a)
-    (m/transfer)
-    (m/write-address b)
-    (assoc :transfer-shift 0M)
-    (m/advance-pc)))
+  (apply-transfer machine-state a b false))
 
 (defn exec-add-and-clear
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
-  
-  (->
-    machine-state
-    (assoc :sending-clear true)
-    (assoc :transfer-complement false)
-    (m/read-sending-address a)
-    (m/transfer)
-    (m/write-address b)
-    (m/advance-pc)))
+  (when (or (tape-input? a) (printed-or-perforated-output? b))
+    (throw (ex-info "Add and clear is not permitted for input or output"
+                    machine-state)))
+  (let [pending-shift (:transfer-shift machine-state)]
+    (-> machine-state
+        (assoc :sending-clear true
+               :transfer-complement false
+               :transfer-shift 0M)
+        (m/read-sending-address a)
+        (m/transfer)
+        (m/write-address b)
+        (assoc :transfer-shift pending-shift)
+        (m/advance-pc))))
 
 (defn exec-subtract
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (->
-    machine-state
-    (assoc :sending-clear false)
-    (assoc :transfer-complement true)
-    (m/read-sending-address a)
-    (m/transfer)
-    (m/write-address b)
-    (assoc :transfer-shift 0M)
-    (m/advance-pc)))
+  (apply-transfer machine-state a b true))
 
 (defn exec-subtract-and-clear
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
-
-  (->
-    machine-state
-    (assoc :sending-clear true)
-    (assoc :transfer-complement true)
-    (m/read-sending-address a)
-    (m/transfer)
-    (m/write-address b)
-    (m/advance-pc)))
+  (when (or (tape-input? a) (printed-or-perforated-output? b))
+    (throw (ex-info "Subtract and clear is not permitted for input or output"
+                    machine-state)))
+  (let [pending-shift (:transfer-shift machine-state)]
+    (-> machine-state
+        (assoc :sending-clear true
+               :transfer-complement true
+               :transfer-shift 0M)
+        (m/read-sending-address a)
+        (m/transfer)
+        (m/write-address b)
+        (assoc :transfer-shift pending-shift)
+        (m/advance-pc))))
 
 (defn- exec-muldiv-apply-summations
   [machine-state a b f]
@@ -150,7 +171,8 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (as->
+  (let [pending-shift (:transfer-shift machine-state)]
+    (as->
       machine-state $
       (m/read-sending-address $ b)
       (assoc $ :muldiv-complement (n/negative? (:sending-value $)))
@@ -159,8 +181,8 @@
 
       (u/apply-while #(exec-multiply-step % a b) $ #(< (:muldiv-step %) 8))
 
-      (assoc $ :transfer-shift 0M)
-      (m/advance-pc $)))
+      (assoc $ :transfer-shift pending-shift)
+      (m/advance-pc $))))
 
 
 (defn- exec-divide-step
@@ -191,33 +213,34 @@
             (< b 10))
     (throw (ex-info "Invalid stores" machine-state)))
 
-  (let [snd-sign (n/sign (:sending-value (m/read-sending-address machine-state a)))
-        acc-sign (n/sign (:sending-value (m/read-sending-address machine-state 9)))]
-    (as->
-      machine-state $
-      (assoc $ :muldiv-complement (= snd-sign acc-sign))
-      (m/set-sign $ b (= snd-sign acc-sign))
-      (assoc $ :muldiv-step 0)
+  (if (zero? (:accumulator machine-state))
+    (assoc machine-state
+           :stopped true
+           :stop-reason :positive-zero-dividend
+           :transfer-shift 1M)
+    (let [pending-shift (:transfer-shift machine-state)
+          snd-sign (n/sign (:sending-value (m/read-sending-address machine-state a)))
+          acc-sign (n/sign (:sending-value (m/read-sending-address machine-state 9)))]
+      (as->
+        machine-state $
+        (assoc $ :muldiv-complement (= snd-sign acc-sign))
+        (m/set-sign $ b (= snd-sign acc-sign))
+        (assoc $ :muldiv-step 0)
 
-      (u/apply-while #(exec-divide-step % a b acc-sign) $ #(< (:muldiv-step %) 8))
+        (u/apply-while #(exec-divide-step % a b acc-sign) $ #(< (:muldiv-step %) 8))
 
-      (assoc $ :transfer-shift 0M)
-      (m/advance-pc $))))
+        (assoc $ :transfer-shift pending-shift)
+        (m/advance-pc $)))))
 
 (defn exec-transfer-positive-modulus
   [machine-state a b]
   (when (invalid-stores a b)
     (throw (ex-info "Invalid stores" machine-state)))
+  (when-not (or (= a 9) (>= a 10))
+    (throw (ex-info "Positive modulus requires a store or accumulator source"
+                    machine-state)))
 
-  (->
-    machine-state
-    (assoc :sending-clear false)
-    (assoc :transfer-complement :sending)
-    (m/read-sending-address a)
-    (m/transfer)
-    (m/write-address b)
-    (assoc :transfer-shift 0M)
-    (m/advance-pc)))
+  (apply-transfer machine-state a b :sending))
 
 ; Control instruction decodes
 
@@ -226,12 +249,12 @@
   (when (> (mod a 10) 2)
     (throw (ex-info "Invalid signal value" machine-state)))
 
-  (pp/cl-format true ">>> Signal ~a <<<~%" a)
-
-  (->
-    machine-state
-    (assoc :finished (> (mod a 10) 0))
-    (m/advance-pc)))
+  (let [signal (mod a 10)]
+    (when (pos? signal)
+      (pp/cl-format true ">>> Signal ~a <<<~%" signal))
+    (cond-> (m/advance-pc machine-state)
+      (= signal 1) (assoc :finished true)
+      (= signal 2) (assoc :waiting-signal 2))))
 
 (defn exec-sign-examination
   [machine-state a b]
@@ -248,9 +271,14 @@
 
 (defn exec-transfer-control
   [machine-state a b]
-  (if (or (= 1 (rem a 10)) (:sign-test machine-state))
-    (assoc machine-state :pc b)
-    (m/advance-pc machine-state)))
+  (when-not (#{21 22} a)
+    (throw (ex-info "Invalid transfer-control opcode" machine-state)))
+  (cond
+    (= a 21) (assoc machine-state :pc b)
+    (nil? (:sign-test machine-state))
+    (assoc machine-state :stopped true :stop-reason :no-sign-examination)
+    (:sign-test machine-state) (assoc machine-state :pc b)
+    :else (m/advance-pc machine-state)))
 
 (defn exec-search-tape
   [machine-state a b]
@@ -261,12 +289,16 @@
 
 (defn exec-search-tape-conditional
   [machine-state a b]
-  (as->
-    machine-state $
-    (if (:sign-test $)
-        (m/search-tape $ b (get block-keywords (mod a 10)))
-        $)
-    (m/advance-pc $)))
+  (cond
+    (nil? (:sign-test machine-state))
+    (assoc machine-state :stopped true :stop-reason :no-sign-examination)
+
+    (:sign-test machine-state)
+    (-> machine-state
+        (m/search-tape b (get block-keywords (mod a 10)))
+        (m/advance-pc))
+
+    :else (m/advance-pc machine-state)))
 
 (defn exec-change-print-layout
   [machine-state a]
@@ -334,7 +366,11 @@
   "Run the machine until it reaches a terminating instruction"
   [machine-state]
   (loop [m machine-state]
-    (if-not (:finished m)
+    (if-not (or (:finished m) (:stopped m) (:waiting-signal m))
       (recur (step m))
       (identity m))))
 
+(defn pass-signal
+  "Model the operator's Pass Signal key, allowing a paused run to continue."
+  [machine-state]
+  (assoc machine-state :waiting-signal nil))

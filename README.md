@@ -152,9 +152,15 @@ I believe that in the real machine, clear is an operation whereby the complement
 chain is not fed back into the sending dekatrons as their value is read out.  I do not simulate
 this.  The sending dekatrons effectively keep their value unless they are explicitly cleared.
 
+## Example programs
+
+The symbolic programs in `examples/` include the original demonstrations and exercises,
+factorial and Fibonacci sequences, bubble sort, indirect addressing, Pascal's triangle,
+a sine series, Newton square-root approximation, Euclidean GCD, Horner polynomial
+evaluation, a Leibniz approximation of pi, and a simple counter.
+
 ## ToDo
 
-* Finish off the unit tests
 * Write some other example tapes (calculate bubble sort, quick sort, ...)
 * Introduce punched hole tape format
 

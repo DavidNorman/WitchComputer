@@ -26,7 +26,7 @@
   "Run one order for each press of Return. Entering q leaves the machine paused."
   [machine-state]
   (loop [state machine-state]
-    (if (:finished state)
+    (if (or (:finished state) (:stopped state) (:waiting-signal state))
       state
       (do
         (pp/cl-format true
