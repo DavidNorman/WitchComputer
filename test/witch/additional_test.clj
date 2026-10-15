@@ -1,6 +1,7 @@
 (ns witch.additional-test
   (:require [clojure.string :as str]
             [clojure.test :refer :all]
+            [witch.assembler :as assembler]
             [witch.core :as core]
             [witch.decode :as d]
             [witch.machine :as m]
@@ -13,17 +14,24 @@
          :stores (into (vec values)
                        (repeat (- 90 (count values)) 0.0000000M))))
 
-(defn run-tape
-  [filename]
-  (let [result (atom nil)
-        output (with-out-str
-                 (reset! result
-                         (-> m/initial-machine-state
-                             (assoc :tapes (tape/read-tapes [filename]))
-                             (d/exec-search-tape 1 1)
-                             (d/exec-transfer-control 21 1)
-                             (d/run))))]
-    {:state @result :output output}))
+(defn run-program
+  [program]
+  (let [assembled (java.io.File/createTempFile "witch-program-" ".tape")]
+    (try
+      (assembler/assemble-file (str "examples/" program ".witch")
+                               (.getPath assembled))
+      (let [result (atom nil)
+            output (with-out-str
+                     (reset! result
+                             (-> m/initial-machine-state
+                                 (assoc :tapes
+                                        (tape/read-tapes [(.getPath assembled)]))
+                                 (d/exec-search-tape 1 1)
+                                 (d/exec-transfer-control 21 1)
+                                 (d/run))))]
+        {:state @result :output output})
+      (finally
+        (.delete assembled)))))
 
 (deftest argument-parsing
   (is (= {:files '("tape") :single-step false :trace false}
@@ -173,29 +181,35 @@
       (is (n/positive? (get-in state [:stores 10]))))))
 
 (deftest bundled-programs
-  (let [{:keys [state output]} (run-tape "resources/demo-1")]
+  (let [{:keys [state output]} (run-program "demo-1")]
     (is (:finished state))
     (is (= 1.6000000M (get-in state [:stores 0])))
     (is (str/includes? output "+1.5000000  +2.2500000")))
-  (let [{:keys [state output]} (run-tape "resources/factorial")]
+  (let [{:keys [state output]} (run-program "factorial")]
     (is (:finished state))
     (is (= 0.0362880M (get-in state [:stores 10])))
     (is (str/includes? output "+0.0000009  +0.0362880")))
-  (let [{:keys [state output]} (run-tape "resources/fibonacci")]
+  (let [{:keys [state output]} (run-program "fibonacci")]
     (is (:finished state))
     (is (= 0.0010946M (get-in state [:stores 0])))
     (is (= 0.0017711M (get-in state [:stores 10])))
     (is (str/includes? output "+0.0006765")))
-  (let [{:keys [state output]} (run-tape "resources/bubble-sort")
+  (let [{:keys [state output]} (run-program "bubble-sort")
         values (map n/from-nines (subvec (:stores state) 50 65))]
     (is (:finished state))
     (is (every? (fn [[a b]] (>= a b)) (partition 2 1 values)))
-    (is (= 15 (count (re-seq #"[+-]\d\.\d{7}" output))))))
+    (is (= 15 (count (re-seq #"[+-]\d\.\d{7}" output)))))
+  (let [{:keys [state output]} (run-program "exercise-3")
+        current (n/from-nines (get-in state [:stores 10]))
+        next (n/from-nines (get-in state [:stores 20]))]
+    (is (:finished state))
+    (is (< (abs (- current next)) 0.000005M))
+    (is (str/includes? output "+1.4142135"))))
 
 (deftest all-bundled-programs-terminate
   (doseq [resource ["demo-2" "exercise-1" "exercise-2" "exercise-4"
                     "exercise-5" "exercise-6" "indirect" "pascal" "sine"]]
-    (let [{:keys [state]} (run-tape (str "resources/" resource))]
+    (let [{:keys [state]} (run-program resource)]
       (is (:finished state) (str resource " should terminate"))
       (is (integer? (:pc state)) (str resource " should leave a valid PC")))))
 

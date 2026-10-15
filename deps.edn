@@ -1,6 +1,7 @@
-{:paths ["src" "resources"]
+{:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.12.4"}}
  :aliases
- {:run {:main-opts ["-m" "witch.core"]}
+ {:assemble {:main-opts ["-m" "witch.assembler"]}
+  :run {:main-opts ["-m" "witch.core"]}
   :test {:extra-paths ["test"]
          :main-opts ["-m" "witch.test-runner"]}}}

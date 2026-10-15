@@ -27,15 +27,54 @@ using the following command line from the root of the repository.
     -s  :  Single step; press Return to execute one order, or q to quit
     -t  :  Traces the execution of the system
 
+## Assembler
+
+The assembler translates a symbolic source file into an ordinary numerical tape file.
+The simulator reads only the generated tape; it does not interpret symbolic source.
+
+    $ clojure -M:assemble examples/demo-1.witch /tmp/demo-1.tape
+    $ clojure -M:run /tmp/demo-1.tape
+
+Symbolic files retain the tape format's `==tape`, `#n`, comments, signed data, and raw
+five-digit orders. Address aliases can be declared anywhere and may be used before their
+declaration:
+
+    X = 10
+    RESULT = 20
+
+    ==tape
+    #1
+    ADD X RESULT
+    PRINT-LAYOUT-2
+    ADD RESULT 01
+    FINISH
+
+The canonical orders follow the historical order table: `ADD`, `ADD-AND-CLEAR`,
+`SUBTRACT`, `SUBTRACT-AND-CLEAR`, `MULTIPLY`, `DIVIDE`,
+`TRANSFER-POSITIVE-MODULUS`, `TEST-POSITIVE`, `TEST-NEGATIVE`,
+`TRANSFER-CONTROL`, `TRANSFER-CONTROL-IF`, `SEARCH`, `SEARCH-IF`,
+`PRINT-LAYOUT-1`, `PRINT-LAYOUT-2`, and `FINISH`.
+
+For convenience, `CLEAR` is a pseudo-order. `ADD-CLEAR`, `SUBTRACT-CLEAR`,
+`TRANSFER-MODULUS`, `JUMP`, `JUMP-IF`, and `STOP` are accepted aliases.
+The simulator's additional controls are exposed as `SIGNAL`, `PRINT-LAYOUT n`, and
+`SHIFT n`; shift amounts are written directly, from 1 through -7.
+
+Symbolic versions of every bundled program are available in `examples/`. The directory
+also contains `demo-1.tape` as an example of the generated numerical tape format. Other
+numerical tapes should be treated as build outputs and generated with the assembler.
+
 ## Examples
 
-    $ clojure -M:run resources/demo-1
+    $ clojure -M:run examples/demo-1.tape
 
-    $ clojure -M:run resources/demo-2
+    $ clojure -M:assemble examples/demo-2.witch /tmp/demo-2.tape
+    $ clojure -M:run /tmp/demo-2.tape
 
-    $ clojure -M:run -t resources/exercise-1
+    $ clojure -M:assemble examples/exercise-1.witch /tmp/exercise-1.tape
+    $ clojure -M:run -t /tmp/exercise-1.tape
 
-    $ clojure -M:run -s resources/demo-1
+    $ clojure -M:run -s examples/demo-1.tape
 
 ## Tape file format
 

@@ -1,6 +1,7 @@
 (ns witch.test-runner
   (:require [clojure.test :as test]
             [witch.additional-test]
+            [witch.assembler-test]
             [witch.decode-test]
             [witch.machine-test]
             [witch.nines-test]
@@ -10,6 +11,7 @@
 
 (def test-namespaces
   '[witch.additional-test
+    witch.assembler-test
     witch.decode-test
     witch.machine-test
     witch.nines-test
