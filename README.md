@@ -16,10 +16,10 @@ because my parents learned to program this machine while studying at Wolverhampt
 
 ## Usage
 
-Download the Leiningen environment from http://leiningen.org and then run the code
-using the following command line from the root of the repository sandbox.
+Install the [Clojure CLI](https://clojure.org/guides/install_clojure), then run the code
+using the following command line from the root of the repository.
 
-    $ lein run <tape-file>
+    $ clojure -M:run <tape-file>
 
 
 ## Command line options
@@ -28,11 +28,11 @@ using the following command line from the root of the repository sandbox.
 
 ## Examples
 
-    $ lein run resources/demo-1
+    $ clojure -M:run resources/demo-1
 
-    $ lein run resources/demo-2
+    $ clojure -M:run resources/demo-2
 
-    $ lein run -t resources/exercise-1
+    $ clojure -M:run -t resources/exercise-1
 
 ## Tape file format
 
@@ -78,9 +78,9 @@ See the files in the 'resources' directory for some examples.
 
 ## Running the unit tests
 
-Unit tests can be run from Leiningen environment.
+Unit tests can be run with the Clojure CLI.
 
-    $ lein test
+    $ clojure -M:test
 
 ## Design
 

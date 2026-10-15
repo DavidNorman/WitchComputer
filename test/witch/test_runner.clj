@@ -1,0 +1,20 @@
+(ns witch.test-runner
+  (:require [clojure.test :as test]
+            [witch.decode-test]
+            [witch.machine-test]
+            [witch.nines-test]
+            [witch.tape-reader-test]
+            [witch.utils-test]))
+
+(def test-namespaces
+  '[witch.decode-test
+    witch.machine-test
+    witch.nines-test
+    witch.tape-reader-test
+    witch.utils-test])
+
+(defn -main
+  [& _]
+  (let [{:keys [fail error]} (apply test/run-tests test-namespaces)]
+    (when (pos? (+ fail error))
+      (System/exit 1))))
