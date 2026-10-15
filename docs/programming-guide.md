@@ -22,6 +22,59 @@ Where this guide uses modern terms such as “subroutine,” “stack,” and
 “continuation,” those terms describe techniques constructed from the historical
 orders documented in those references.
 
+## Terminology
+
+The historical documentation uses several words differently from modern
+programming literature.
+
+### Order
+
+An **order** is what would now normally be called an instruction. It is written
+as five decimal digits:
+
+```text
+11020
+```
+
+The first digit selects the operation, and the remaining four digits normally
+contain two two-digit addresses. In this example, `1` means add and hold, so the
+order means “add the contents of sending address 10 into receiving address 20.”
+
+Orders can be read from tape or stored in addresses 10–99. Because an order has
+the same numerical representation as ordinary data, a program can alter an
+order arithmetically and then execute it.
+
+### Group on tape
+
+A **group** is one complete item read from paper tape. Depending on context, it
+may be:
+
+- A five-digit order
+- A signed eight-digit number
+- A five-digit positive number marked with an asterisk on physical tape
+
+On physical tape, a group begins with a space character or a numbered block
+marker. In this project's numerical tape format, each order or number appears
+on its own line. A preceding `#n` line represents the block marker attached to
+the following group.
+
+When this guide says that a tape advances to the “next group,” it means the next
+complete order or data value—not merely the next punched row or decimal digit.
+
+### Block marker
+
+A **block marker** is a special punched character numbered 0–9. It identifies a
+position that a tape reader can search for. A block is therefore a convenient
+entry point or branch target on a tape, rather than a region allocated by the
+assembler.
+
+### Store group
+
+A **group of stores** is a different use of the word “group.” The stores are
+arranged in tens: 10–19, 20–29, and so on. Most arithmetic orders may not use
+two addresses from the same store group. This restriction is unrelated to tape
+groups.
+
 ## 1. A mental model
 
 Several differences from a modern computer shape every WITCH program:
