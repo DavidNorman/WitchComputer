@@ -1,0 +1,87 @@
+; Demonstration program 2
+
+; Print out the sums s1=0.5, s2=0.5 + 0.25, s3 = 0.5 + 0.25 + 0.125, etc.
+; as far as s9 in a single column
+
+; http://www.computerconservationsociety.org/witch14.htm
+
+; The original demo uses a positive dividend, which causes an error of
+; -1 in the least significant digit of the result.  I have corrected this
+; by making the dividend negative and subtracting the negative result.  I
+; have left the original code in as comments for comparison.
+
+==tape
+
+#1
+
+; Clear stores
+CLEAR 09
+CLEAR 10
+CLEAR 20
+CLEAR 30
+CLEAR 40
+CLEAR 50
+
+; Add in data
+ADD 01 10
++05000000
+ADD 01 20
++90000000
+ADD 01 30
++10000000
+ADD 01 40
++20000000
+
+; Form first term
+ADD 10 50
+
+; Transfer to looping tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Print S
+PRINT-LAYOUT-2
+ADD 10 01
+
+; Test
+SUBTRACT 30 20
+TEST-NEGATIVE 20
+
+; Search when -ve
+SEARCH-IF 3 03
+TRANSFER-CONTROL-IF 03
+
+; === original code that used a positive dividend ===
+
+; Divide then clear remainder
+; 25009
+; 64050
+; 20900
+
+; Add T to S
+; 15010
+
+; === end of original code ===
+
+; Divide and clear remainder (using negative divisor)
+SUBTRACT-AND-CLEAR 50 09
+DIVIDE 40 50
+CLEAR 09
+
+; Add T to S (by subtracting the negative quotient)
+SUBTRACT 50 10
+
+; Go to block 2
+SEARCH 2 02
+
+==tape
+
+#3
+
+; Stop
+FINISH

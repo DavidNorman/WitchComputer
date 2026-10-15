@@ -1,0 +1,254 @@
+; Symbolic address names
+
+TEMP_1 = 10
+TEMP_2 = 11
+VALUE_COUNT = 20
+PROGRAM_START = 40
+ARRAY_START = 60
+LOOP_COUNTER = 97
+SEND_INCREMENT = 98
+RECEIVE_INCREMENT = 99
+
+; Bubble sort up to 30 numbers from tape-3
+
+; The values tape should start with the count, marked with block 1.
+; It should be followed by the values.
+;
+; The count should be shifter to digit -4.
+
+; Variables
+; 10 - temp
+; 11 - temp
+; 20 - the actual count of numbers
+; 40 - location of program
+; 60 - the address of the first element of the number array
+; 97 - temp
+; 98 - the constant +00100000
+; 99 - the constant +00001000
+
+==tape
+
+#1
+
+; 98 contains increment value for send
+CLEAR SEND_INCREMENT
+ADD 01 SEND_INCREMENT
++00100000
+
+; 99 contains increment value for receive
+CLEAR RECEIVE_INCREMENT
+ADD 01 RECEIVE_INCREMENT
++00001000
+
+; Read the number of values
+SEARCH 1 03
+CLEAR VALUE_COUNT
+ADD 03 VALUE_COUNT
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+;
+; First read in the values to memory
+;
+
+#2
+
+; Setup indirect store operation
+; assumption: 09 contains data
+
+; @40 = 2xx00: clear destination
+CLEAR PROGRAM_START
+ADD 02 PROGRAM_START
+CLEAR ARRAY_START
+
+; @41 = 109xx: store 09 -> destination
+CLEAR 41
+ADD 02 41
+ADD 09 ARRAY_START
+
+; @42 = 02102: return to main program
+CLEAR 42
+ADD 02 42
+TRANSFER-CONTROL 02
+
+; 97 contains loop counter (counting down)
+CLEAR LOOP_COUNTER
+ADD VALUE_COUNT LOOP_COUNTER
+
+#3
+
+; Read value from tape
+CLEAR 09
+ADD 03 09
+
+; Call indirect store
+TRANSFER-CONTROL PROGRAM_START
+
+; Update offsets in indirect store
+ADD SEND_INCREMENT PROGRAM_START
+ADD RECEIVE_INCREMENT 41
+
+; Decrease and test loop counter for 0
+SUBTRACT 02 LOOP_COUNTER
++00000001
+TEST-POSITIVE LOOP_COUNTER
+
+; Goto block 3
+SEARCH-IF 3 02
+
+;
+; Next perform the bubble sort
+;
+
+; 97 contains (array-size-1) -> 1 loop counter
+CLEAR LOOP_COUNTER
+ADD VALUE_COUNT LOOP_COUNTER
+SUBTRACT 02 LOOP_COUNTER
++00000001
+
+#4
+
+; 11 contains [97] -> 1 loop counter
+CLEAR TEMP_2
+ADD LOOP_COUNTER TEMP_2
+
+
+; Set up indirect loads / compare / swap
+; assumption: 09 is clear
+
+; @40 = 1xx09: indirect load array[n]
+CLEAR PROGRAM_START
+ADD 02 PROGRAM_START
+ADD ARRAY_START 09
+
+; @41 = 3yy09: subtract so 09 = array[n] - array[n+1]
+CLEAR 41
+ADD 02 41
+SUBTRACT 61 09
+
+; @42 = 01109: compare negative
+CLEAR 42
+ADD 02 42
+TEST-POSITIVE 09
+
+; @43 = 02202: conditional return to main program
+CLEAR 43
+ADD 02 43
+TRANSFER-CONTROL-IF 02
+
+; @44 = 309xx: new array[n] = array[n] - (array[n] - array[n+1])
+CLEAR 44
+ADD 02 44
+SUBTRACT 09 ARRAY_START
+
+; @45 = 109yy: new array[n+1] = array[n+1] + (array[n] - array[n+1])
+CLEAR 45
+ADD 02 45
+ADD 09 61
+
+; @46 = 02102: return to main program
+CLEAR 46
+ADD 02 46
+TRANSFER-CONTROL 02
+
+
+#5
+
+; Clear accumulator and call compare and swap
+CLEAR 09
+TRANSFER-CONTROL PROGRAM_START
+
+; Update offsets in compare and swap code
+ADD SEND_INCREMENT PROGRAM_START
+ADD SEND_INCREMENT 41
+ADD RECEIVE_INCREMENT 44
+ADD RECEIVE_INCREMENT 45
+
+; end inner loop
+SUBTRACT 02 TEMP_2
++00000001
+TEST-POSITIVE TEMP_2
+SEARCH-IF 5 02
+
+; end outer loop
+SUBTRACT 02 LOOP_COUNTER
++00000001
+TEST-POSITIVE LOOP_COUNTER
+SEARCH-IF 4 02
+
+
+
+;
+; Finally print the sorted list
+;
+
+; Setup print format
+PRINT-LAYOUT-2
+
+; Setup indirect store operation
+; @40 = 1xx09: store source -> 09
+CLEAR PROGRAM_START
+ADD 02 PROGRAM_START
+ADD ARRAY_START 09
+
+; @41 = 02102
+CLEAR 41
+ADD 02 41
+TRANSFER-CONTROL 02
+
+; 97 contains loop counter (counting down)
+CLEAR LOOP_COUNTER
+ADD VALUE_COUNT LOOP_COUNTER
+
+#6
+
+; Clear acc
+CLEAR 09
+
+; Call indirect load
+TRANSFER-CONTROL PROGRAM_START
+
+; print values
+ADD 09 01
+
+; Update offsets in indirect load
+ADD SEND_INCREMENT PROGRAM_START
+
+; Decrease and test loop counter for 0
+SUBTRACT 02 LOOP_COUNTER
++00000001
+TEST-POSITIVE LOOP_COUNTER
+SEARCH-IF 6 02
+
+
+
+; Stop
+FINISH
+
+==tape
+
+#1
+; Number of values
++00000015
+
+; Values
++00010101
++02416830
++47294729
+-34619573
++45710572
+-27372957
+-00482750
++01414355
+-00572659
++00000001
+-49999991
++43446263
+-00572658
+-28362986
+-00066326

@@ -1,0 +1,79 @@
+; Symbolic address names
+
+LOOP_VALUE = 10
+RATIO_POWER = 11
+RUNNING_TOTAL = 12
+TEMP = 40
+
+; Exercise 2
+; Print 6 terms of progression with ratio 3/7
+
+; Constants/Variables
+;
+; 10 = loop value
+; 11 = (3/7)**N
+; 12 = Running total of series
+; 40 = temp
+
+==tape
+
+#1
+
+; Clear stores
+CLEAR 09
+CLEAR LOOP_VALUE
+CLEAR RATIO_POWER
+CLEAR RUNNING_TOTAL
+CLEAR TEMP
+
+; Add in data
+ADD 01 LOOP_VALUE
++00000001
+ADD 01 RATIO_POWER
++10000000
+ADD 01 RUNNING_TOTAL
++10000000
+
+; Set print format
+PRINT-LAYOUT-2
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Print out total so far
+ADD RUNNING_TOTAL 01
+
+; Read in 3/7 -> 20
+ADD 02 20
++04285714
+
+; Multiply by current (3/7)**N
+MULTIPLY RATIO_POWER 20
+
+; Store for next iteration
+CLEAR RATIO_POWER
+ADD 09 RATIO_POWER
+
+; Sum into running total
+ADD-AND-CLEAR 09 RUNNING_TOTAL
+
+; Increase X
+ADD 02 LOOP_VALUE
++00000001
+
+; Test
+ADD 02 TEMP
++00000007
+SUBTRACT LOOP_VALUE TEMP
+TEST-POSITIVE TEMP
+CLEAR TEMP
+
+; Search for block 2 again or stop
+SEARCH-IF 2 02
+FINISH

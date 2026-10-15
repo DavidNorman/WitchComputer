@@ -1,0 +1,63 @@
+; Symbolic address names
+
+X = 10
+CURRENT_FACTORIAL = 20
+TEMP = 40
+
+; Produces a table of X and X!
+
+; Constants/Variables
+;
+; 10 = X (least significant digit form)
+; 20 = current factorial value (LSD form)
+; 40 = temp
+
+==tape
+
+#1
+
+; Load data
+CLEAR X
+ADD 01 X
++00000001
+CLEAR CURRENT_FACTORIAL
+ADD 01 CURRENT_FACTORIAL
++00000001
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Multiply X into factorial
+CLEAR 09
+MULTIPLY X CURRENT_FACTORIAL
+
+; Transfer X! back to stores (shifting by -1 at the same time)
+SHIFT -1
+ADD 08 CURRENT_FACTORIAL
+
+; Print X, X!
+PRINT-LAYOUT-1
+ADD X 01
+PRINT-LAYOUT-2
+ADD CURRENT_FACTORIAL 01
+
+; Increase X
+ADD 02 X
++00000001
+
+; Test
+CLEAR TEMP
+ADD 02 TEMP
++00000010
+SUBTRACT X TEMP
+TEST-POSITIVE TEMP
+
+; Search for block 2 again or stop
+SEARCH-IF 2 02
+FINISH

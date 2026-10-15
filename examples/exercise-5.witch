@@ -1,0 +1,102 @@
+; Symbolic address names
+
+N1 = 10
+N2 = 11
+TEMP_1 = 40
+TEMP_2 = 50
+
+; Exercise 5
+; Non-pairs of digits 1-4
+
+; Constants/Variables
+;
+; 10 = N1
+; 11 = N2
+; 40 = temp
+; 50 = temp
+
+==tape
+
+#1
+
+; Clear stores
+CLEAR 09
+CLEAR N1
+CLEAR N2
+CLEAR TEMP_1
+
+; Add in data
+ADD 01 N1
++10000000
+ADD 01 N2
++10000000
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Reset N2
+CLEAR N2
+ADD 02 N2
++10000000
+
+#3
+
+; Subtract the values
+CLEAR TEMP_1
+ADD N1 TEMP_1
+SUBTRACT N2 TEMP_1
+
+; abs(x)-0 is negative if x==0
+CLEAR TEMP_2
+TRANSFER-POSITIVE-MODULUS TEMP_1 TEMP_2
+SUBTRACT 02 TEMP_2
++00000000
+TEST-NEGATIVE TEMP_2
+SEARCH-IF 4 02
+
+; Print
+PRINT-LAYOUT-1
+ADD N1 01
+PRINT-LAYOUT-2
+ADD N2 01
+
+#4
+
+; Increase N2
+CLEAR TEMP_1
+ADD 02 TEMP_1
++10000000
+ADD-AND-CLEAR TEMP_1 N2
+
+; Test N2
+ADD 02 TEMP_1
++50000000
+SUBTRACT N2 TEMP_1
+TEST-POSITIVE TEMP_1
+
+; Conditional search for block 3 again
+SEARCH-IF 3 02
+
+; Increase N1
+CLEAR TEMP_1
+ADD 02 TEMP_1
++10000000
+ADD-AND-CLEAR TEMP_1 N1
+
+; Test N1
+ADD 02 TEMP_1
++50000000
+SUBTRACT N1 TEMP_1
+TEST-POSITIVE TEMP_1
+
+; Conditional search for block 2 again
+SEARCH-IF 2 02
+
+; Stop
+FINISH

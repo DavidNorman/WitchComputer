@@ -1,0 +1,301 @@
+; Symbolic address names
+
+ROW = 10
+ROW_COUNT = 11
+TEMP = 12
+ARRAY_START = 20
+ONE = 80
+LOAD_STORE_ADDRESS = 93
+LOAD_STORE_DATA = 94
+LOAD_PROGRAM = 95
+STORE_PROGRAM = 97
+
+; Generate pascal's triangle
+
+; Includes the use of the indirect load/store code
+
+; Variables
+; 10 - current row of the triangle
+; 11 - count down across the row
+; 12 - temporary space
+; 20 - beginning of the array space for the triangle
+; 80 - constant 1
+; 93 - address for load/store
+; 94 - data for load/store
+; 95 - the beginning of the load program
+; 97 - the beginning of the store program
+
+; tape 1
+==tape
+
+#1
+
+; Clear all space
+CLEAR ARRAY_START
+CLEAR 21
+CLEAR 22
+CLEAR 23
+CLEAR 24
+CLEAR 25
+CLEAR 26
+CLEAR 27
+CLEAR 28
+CLEAR 29
+CLEAR 30
+CLEAR 31
+CLEAR 32
+CLEAR 33
+CLEAR 34
+CLEAR 35
+CLEAR 36
+CLEAR 37
+CLEAR 38
+CLEAR 39
+
+CLEAR ROW
+ADD 01 ROW
++00000001
+
+CLEAR ONE
+ADD 01 ONE
++00000001
+
+CLEAR ROW
+ADD 01 ROW
++00000001
+
+CLEAR ARRAY_START
+ADD 01 ARRAY_START
++00000001
+
+; Setup indirect load/store
+
+; Clear program space
+
+CLEAR LOAD_STORE_ADDRESS
+CLEAR LOAD_STORE_DATA
+CLEAR LOAD_PROGRAM
+CLEAR 96
+CLEAR STORE_PROGRAM
+CLEAR 98
+CLEAR 99
+
+; Setup indirect load operation
+
+; 1xx09: store source -> 09
+ADD 01 LOAD_PROGRAM
+ADD 00 LOAD_STORE_DATA
+
+; 02102: return to main program
+ADD 01 96
+TRANSFER-CONTROL 02
+
+; Setup indirect store operation
+
+; 2xx00: clear destination
+ADD 01 STORE_PROGRAM
+CLEAR 00
+
+; 109xx: store 94 -> destination (clear 94)
+ADD 01 98
+CLEAR LOAD_STORE_DATA
+
+; 02102: return to main program
+ADD 01 99
+TRANSFER-CONTROL 02
+
+
+; Transfer to main tape
+SEARCH 1 02
+TRANSFER-CONTROL 02
+
+;==================================================
+
+; tape 2
+==tape
+
+#1
+
+PRINT-LAYOUT-2
+
+#2
+
+; Load down counter (n) with row
+CLEAR ROW_COUNT
+CLEAR 09
+ADD ROW 09
+ADD 09 ROW_COUNT
+
+#3
+
+; Count down adding a[n] + a[n-1] (until counter == 0)
+; - load a[n]
+CLEAR LOAD_STORE_ADDRESS
+ADD 02 LOAD_STORE_ADDRESS
++00000020
+ADD ROW_COUNT LOAD_STORE_ADDRESS
+
+; Call load
+SEARCH 1 07
+TRANSFER-CONTROL 07
+
+ADD-AND-CLEAR LOAD_STORE_DATA TEMP
+
+; - load a[n-1]
+SUBTRACT 02 LOAD_STORE_ADDRESS
++00000001
+
+; Call load
+SEARCH 1 07
+TRANSFER-CONTROL 07
+
+; Sum
+ADD-AND-CLEAR LOAD_STORE_DATA TEMP
+
+; Store
+ADD 02 LOAD_STORE_ADDRESS
++00000001
+ADD-AND-CLEAR TEMP LOAD_STORE_DATA
+
+SEARCH 2 07
+TRANSFER-CONTROL 07
+
+
+; subtract one from count down and loop if not zero
+SUBTRACT ONE ROW_COUNT
+TEST-POSITIVE ROW_COUNT
+SEARCH-IF 3 02
+
+; Print row
+CLEAR ROW_COUNT
+CLEAR 09
+ADD ROW 09
+ADD 09 ROW_COUNT
+PRINT-LAYOUT-1
+
+#4
+
+; load value and print
+CLEAR LOAD_STORE_DATA
+
+CLEAR LOAD_STORE_ADDRESS
+ADD ROW_COUNT LOAD_STORE_ADDRESS
+ADD 02 LOAD_STORE_ADDRESS
++00000020
+
+SEARCH 1 07
+TRANSFER-CONTROL 07
+
+ADD LOAD_STORE_DATA 01
+
+; Print loop end
+SUBTRACT ONE ROW_COUNT
+TEST-POSITIVE ROW_COUNT
+SEARCH-IF 4 02
+
+; Print value at 20
+ADD ARRAY_START 01
+
+; Add one to row counter
+ADD ONE ROW
+
+; Print blanks between each row of triangle
+PRINT-LAYOUT 0
+ADD ROW 01
+
+; Repeat until row counter == 20
+CLEAR 09
+ADD 02 09
++00000021
+SUBTRACT ROW 09
+
+TEST-POSITIVE 09
+SEARCH-IF 2 02
+
+; Stop
+FINISH
+
+;==================================================
+
+; tape 3
+==tape
+FINISH
+
+
+; tape 4
+==tape
+FINISH
+
+
+; tape 5
+==tape
+FINISH
+
+
+; tape 6
+==tape
+FINISH
+
+
+; tape 7
+==tape
+
+; Indirect load entry
+; inputs:
+;   93 contains dst address
+; outputs:
+;   94 contains data
+;   93 is unchanged
+;   09 is modified
+#1
+
+; Clear store instruction and add basic opcode back in
+CLEAR LOAD_PROGRAM
+ADD 07 LOAD_PROGRAM
+ADD 00 LOAD_STORE_DATA
+
+; Add in source by shifting via 09
+CLEAR 09
+SHIFT -3
+ADD LOAD_STORE_ADDRESS 09
+ADD-AND-CLEAR 08 LOAD_PROGRAM
+
+; Clear the destination data
+CLEAR LOAD_STORE_DATA
+
+; Call in-store code
+TRANSFER-CONTROL LOAD_PROGRAM
+
+; Indirect store entry
+; inputs:
+;   93 contains dst address
+;   94 contains data
+; outputs:
+;   93 is unchanged
+;   94 is unchanged
+;   09 is modified
+#2
+
+; Set up clear and move opcodes
+CLEAR STORE_PROGRAM
+ADD 07 STORE_PROGRAM
+CLEAR 00
+
+CLEAR 98
+ADD 07 98
+CLEAR LOAD_STORE_DATA
+
+; Add in clear opcode address
+CLEAR 09
+SHIFT -3
+ADD LOAD_STORE_ADDRESS 09
+ADD 08 STORE_PROGRAM
+
+; Add in move opcode address
+CLEAR 09
+SHIFT -5
+ADD LOAD_STORE_ADDRESS 09
+ADD 08 98
+
+; Call in-store code
+TRANSFER-CONTROL STORE_PROGRAM

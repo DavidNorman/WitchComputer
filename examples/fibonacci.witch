@@ -1,0 +1,69 @@
+; Symbolic address names
+
+F_N = 10
+F_NEXT = 20
+TEMP = 30
+COUNT = 40
+
+; Produces a table of the fibonacci sequence (20 values)
+
+; Constants/Variables
+;
+; 10 = X(n) (least significant digit form)
+; 20 = X(n+1) (least significant digit form)
+; 30 = tmp
+; 40 = count (down from 20)
+
+==tape
+
+#1
+
+; Load data
+CLEAR F_N
+ADD 01 F_N
++00000001
+CLEAR F_NEXT
+ADD 01 F_NEXT
++00000001
+CLEAR TEMP
+CLEAR COUNT
+ADD 01 COUNT
++00000020
+
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Print X(n)
+PRINT-LAYOUT-2
+ADD F_N 01
+
+; Sum X(n) + X(n+1) -> tmp
+ADD F_N TEMP
+ADD F_NEXT TEMP
+
+; Clear X(n)
+CLEAR F_N
+
+; Move X(n+1) -> X(n)
+ADD-AND-CLEAR F_NEXT F_N
+
+; Move tmp -> X(n+1)
+ADD-AND-CLEAR TEMP F_NEXT
+
+; Decrease counter
+ADD 02 COUNT
+-00000001
+
+; Test for negative count
+TEST-POSITIVE COUNT
+
+; Search for block 2 again or stop
+SEARCH-IF 2 02
+FINISH

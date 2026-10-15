@@ -1,0 +1,90 @@
+; Exercise 3
+; Print successive approximations to sqrt(A), using Newton's method:
+;
+;   next = 1/2 * (current + A/current)
+;
+; Stop when two successive approximations differ by less than 0.000005.
+; This example calculates sqrt(2), starting with the approximation 2.
+
+A = 10
+CURRENT = 20
+NEXT = 30
+DIFFERENCE = 40
+TWO = 50
+TOLERANCE = 60
+
+==tape
+
+#1
+
+; Clear the working stores and accumulator
+CLEAR 09
+CLEAR A
+CLEAR CURRENT
+CLEAR NEXT
+CLEAR DIFFERENCE
+CLEAR TWO
+CLEAR TOLERANCE
+
+; A = 2
+ADD 01 A
++20000000
+
+; Initial approximation = 2
+ADD 01 CURRENT
++20000000
+
+; Divisor used to take the mean
+ADD 01 TWO
++20000000
+
+; Convergence tolerance
+ADD 01 TOLERANCE
++00000050
+
+; Print the initial approximation
+PRINT-LAYOUT-2
+ADD CURRENT 01
+
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+==tape
+
+#2
+
+; NEXT = A / CURRENT
+CLEAR 09
+ADD A 09
+CLEAR NEXT
+DIVIDE CURRENT NEXT
+
+; NEXT = (CURRENT + NEXT) / 2
+ADD CURRENT NEXT
+CLEAR 09
+ADD-AND-CLEAR NEXT 09
+DIVIDE TWO NEXT
+CLEAR 09
+
+; Print the new approximation
+ADD NEXT 01
+
+; DIFFERENCE = CURRENT - NEXT
+CLEAR DIFFERENCE
+ADD CURRENT DIFFERENCE
+SUBTRACT NEXT DIFFERENCE
+
+; A negative result means DIFFERENCE < TOLERANCE
+SUBTRACT TOLERANCE DIFFERENCE
+TEST-NEGATIVE DIFFERENCE
+SEARCH-IF 3 02
+TRANSFER-CONTROL-IF 02
+
+; Continue with the new approximation
+CLEAR CURRENT
+ADD NEXT CURRENT
+SEARCH 2 02
+
+#3
+
+FINISH

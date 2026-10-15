@@ -1,0 +1,172 @@
+; Symbolic address names
+
+N = 10
+LAST_TERM = 20
+TEMP_1 = 40
+TEMP_2 = 50
+X = 60
+SINE = 70
+
+; Produces sin(x)
+
+; A counter N iterates through the terms of the Taylor series. It counts in
+; the 10^-3 position, so that terms can by calculated beyond the 9th. The last
+; calculated term of the taylor series is kept, since each one differs by the
+; value X^2/N(N+1).  Terms are calculated up to the 11th.
+;
+; An outer loop calculates the value of sin(x) for 0 <= x < 3.14
+
+; Constants/Variables
+;
+; 10 = N, counter (x10^-3)
+; 20 = last taylor series term
+; 40 = temp
+; 50 = temp
+; 60 = x, the parameter of sine
+; 70 = sin(x), the taylor series
+
+==tape
+
+#1
+
+; Initial values presume 1st term (X) is in stores
+
+; Counter on 2nd term
+CLEAR N
+ADD 01 N
++00200000
+
+; X = 0 -> 3.14
+CLEAR X
+ADD 01 X
++00000000
+
+; current term = X
+CLEAR LAST_TERM
+ADD X LAST_TERM
+
+; sin(x) = x (term 1)
+CLEAR SINE
+ADD X SINE
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; 1/N -> 40
+CLEAR 09
+ADD 02 09
++00100000
+CLEAR TEMP_1
+DIVIDE N TEMP_1
+
+; Increment N
+ADD 02 N
++00100000
+
+; 1/(N+1) -> 50
+CLEAR 09
+ADD 02 09
++00100000
+CLEAR TEMP_2
+DIVIDE N TEMP_2
+
+; 1/N(N+1) -> 50
+CLEAR 09
+MULTIPLY TEMP_1 TEMP_2
+ADD-AND-CLEAR 09 TEMP_2
+
+; X^2 -> 40
+CLEAR TEMP_1
+ADD X TEMP_1
+CLEAR 09
+MULTIPLY X TEMP_1
+ADD 09 TEMP_1
+
+; Get X^2 / N(N+1) -> 40
+CLEAR 09
+MULTIPLY TEMP_2 TEMP_1
+ADD 09 TEMP_1
+
+; Multiply into taylor series term -> 20
+CLEAR 09
+MULTIPLY TEMP_1 LAST_TERM
+ADD 09 LAST_TERM
+
+; Swap the sign of the term
+CLEAR 09
+CLEAR TEMP_1
+ADD 02 TEMP_1
+-10000000
+MULTIPLY TEMP_1 LAST_TERM
+ADD 09 LAST_TERM
+
+; Sum into taylor series
+ADD LAST_TERM SINE
+
+; Increment N
+ADD 02 N
++00100000
+
+; Test for number of terms
+;24000
+;10240
+;+00950000
+;31040
+;01140
+
+; Test for underflow in Taylor term
+CLEAR TEMP_1
+TRANSFER-POSITIVE-MODULUS LAST_TERM TEMP_1
+SUBTRACT 02 TEMP_1
++00000001
+TEST-POSITIVE TEMP_1
+
+; Search for block 2
+SEARCH-IF 2 02
+
+; Print N, X, sin(x)
+PRINT-LAYOUT-1
+ADD N 01
+ADD X 01
+PRINT-LAYOUT-2
+ADD SINE 01
+
+; Increment x
+ADD 02 X
++00100000
+
+; Test
+CLEAR TEMP_1
+ADD 02 TEMP_1
++31450000
+SUBTRACT X TEMP_1
+TEST-POSITIVE TEMP_1
+
+;
+; Reset taylor parameters
+;
+
+; Counter on 2nd term
+CLEAR N
+ADD 02 N
++00200000
+
+; current term = X
+CLEAR LAST_TERM
+ADD X LAST_TERM
+
+; sin(x) = x (term 1)
+CLEAR SINE
+ADD X SINE
+
+; Search for block 2
+SEARCH-IF 2 02
+
+; Stop
+FINISH

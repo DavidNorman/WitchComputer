@@ -1,0 +1,79 @@
+; Symbolic address names
+
+LOOP_VALUE = 10
+F_N = 11
+F_NEXT = 20
+TEMP = 40
+
+; Exercise 4
+; Fibonacci Sequence and ratio
+
+; Constants/Variables
+;
+; 10 = loop value
+; 11 = F(n)
+; 20 = F(n+1)
+; 40 = temp
+
+==tape
+
+#1
+
+; Clear stores
+CLEAR 09
+CLEAR LOOP_VALUE
+CLEAR F_N
+CLEAR F_NEXT
+
+; Add in data
+ADD 01 LOOP_VALUE
++00000001
+ADD 01 F_N
++00000001
+ADD 01 F_NEXT
++00000001
+
+; Transfer to other tape
+SEARCH 2 02
+TRANSFER-CONTROL 02
+
+
+==tape
+
+#2
+
+; Print out current pair
+PRINT-LAYOUT-1
+ADD F_N 01
+ADD F_NEXT 01
+
+; Create ratio
+CLEAR 09
+ADD F_N 09
+CLEAR TEMP
+DIVIDE F_NEXT TEMP
+
+; Print ratio
+PRINT-LAYOUT-2
+ADD TEMP 01
+
+; F(n)+F(n+1) -> F(n+2)
+ADD F_NEXT F_N
+
+; F(n+1)+F(n+2) -> F(n+3)
+ADD F_N F_NEXT
+
+; Increase X
+ADD 02 LOOP_VALUE
++00000001
+
+; Test
+CLEAR TEMP
+ADD 02 TEMP
++00000015
+SUBTRACT LOOP_VALUE TEMP
+TEST-POSITIVE TEMP
+
+; Search for block 2 again or stop
+SEARCH-IF 2 02
+FINISH
