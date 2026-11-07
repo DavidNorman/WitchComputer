@@ -76,6 +76,16 @@ position that a tape reader can search for. A block is therefore a convenient
 entry point or branch target on a tape, rather than a region allocated by the
 assembler.
 
+### Store
+
+A **store** is a memory location, not the act of writing a value into memory.
+The WITCH has numbered stores 10–99, each capable of holding a number or an
+executable order. Thus “store 50” means “memory location 50,” and “the contents
+of store 50” means the value currently held there.
+
+This guide retains that historical noun. When it needs the verb, it says
+“write,” “copy,” “move,” or “place” a value in a store.
+
 ### Store group
 
 A **group of stores** is a different use of the word “group.” The stores are
@@ -796,6 +806,7 @@ The punched representation is visual output, not simulator input.
 | Iterative approximation | [exercise-3.witch](../examples/exercise-3.witch) |
 | Series approximation | [pi.witch](../examples/pi.witch), [sine.witch](../examples/sine.witch) |
 | Arrays and exchange | [bubble-sort.witch](../examples/bubble-sort.witch) |
+| Exhaustive search and constraint checking | [yale-key-patterns.witch](../examples/yale-key-patterns.witch) |
 | Indirect access | [indirect.witch](../examples/indirect.witch) |
 | Stored programs | [indirect.witch](../examples/indirect.witch) |
 | Multiple cooperating tapes | [indirect.witch](../examples/indirect.witch) |

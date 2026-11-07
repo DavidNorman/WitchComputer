@@ -170,7 +170,8 @@
                    "exercise-1" "exercise-2" "exercise-3" "exercise-4"
                    "exercise-5" "exercise-6" "factorial"
                    "fibonacci" "gcd" "indirect" "pascal" "pi"
-                   "polynomial" "recursive-factorial" "sine"]]
+                   "polynomial" "recursive-factorial" "sine"
+                   "yale-key-patterns"]]
     (let [assembled (java.io.File/createTempFile "witch-assembled-" ".tape")]
       (try
         (assembler/assemble-file (str "examples/" program ".witch")

@@ -91,6 +91,13 @@ numerical tapes should be treated as build outputs and generated with the assemb
 
     $ clojure -M:run -s examples/demo-1.tape
 
+The exhaustive Yale-pattern example enumerates all one million six-position
+patterns and counts those satisfying MACS 5. It intentionally takes several
+minutes in the simulator:
+
+    $ clojure -M:assemble examples/yale-key-patterns.witch /tmp/yale-key-patterns.tape
+    $ clojure -M:run /tmp/yale-key-patterns.tape
+
 ## Tape file format
 
 The tape file format tries to be similar to the examples given on the WITCH computer
